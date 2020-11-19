@@ -18,6 +18,13 @@
         "VpcId": { "Ref": "HelloVpc" }
       }
     },
+    "HelloRouteTableAssociate": {
+      "Type" : "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties" : {
+          "RouteTableId" : { "Ref": "HelloRouteTable" },
+          "SubnetId" : { "Ref": "HelloSubnetPublic" }
+        }
+    },
     "HelloSubnetPrivate": {
       "Type": "AWS::EC2::Subnet",
       "Properties": {
@@ -35,20 +42,6 @@
           "MapPublicIpOnLaunch": true,
           "Tags": [{ "Key": "Name", "Value": "Hello Public Subnet" }],
           "VpcId": { "Ref": "HelloVpc" }
-        }
-    },
-    "HelloSubnetPrivateRouteTableAssociate": {
-      "Type" : "AWS::EC2::SubnetRouteTableAssociation",
-      "Properties" : {
-          "RouteTableId" : { "Ref": "HelloRouteTable" },
-          "SubnetId" : { "Ref": "HelloSubnetPrivate" }
-        }
-    },
-    "HelloSubnetPublicRouteTableAssociate": {
-      "Type" : "AWS::EC2::SubnetRouteTableAssociation",
-      "Properties" : {
-          "RouteTableId" : { "Ref": "HelloRouteTable" },
-          "SubnetId" : { "Ref": "HelloSubnetPublic" }
         }
     },
     "HelloVpcAttach": {
