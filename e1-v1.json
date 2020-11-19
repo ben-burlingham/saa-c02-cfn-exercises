@@ -1,0 +1,27 @@
+{
+  "Resources": {
+    "HelloBucket": {
+      "Type": "AWS::S3::Bucket",
+      "Properties": {
+        "AccessControl": "Private",
+        "BucketName": { "Fn::Sub": [
+          "hello-bucket-${Suffix}",
+          {"Suffix": { "Ref": "UniqueSuffix" }}
+        ]}
+      }
+    }
+  },
+  "Parameters": {
+    "UniqueSuffix": {
+      "AllowedPattern": "^[\\d\\w]{5,}$",
+      "Type": "String",
+      "Description": "Suffixed identifier to provide uniqueness on all names"
+    }
+  },
+  "Outputs" : {
+    "HelloBucketArn": {
+      "Description": "HelloBucket ARN",
+      "Value": { "Fn::GetAtt": [ "HelloBucket", "Arn" ] }
+    }
+  }
+}

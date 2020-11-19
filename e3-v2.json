@@ -1,0 +1,71 @@
+{
+  "Resources": {
+    "HelloIgw": {
+      "Type": "AWS::EC2::InternetGateway"
+    },
+    "HelloRoute": {
+      "Type": "AWS::EC2::Route",
+      "Properties": {
+          "DestinationCidrBlock": "0.0.0.0/0",
+          "GatewayId": { "Ref": "HelloIgw" },
+          "RouteTableId": { "Ref": "HelloRouteTable" }
+        }
+    },
+    "HelloRouteTable": {
+      "Type": "AWS::EC2::RouteTable",
+      "Properties": {
+        "Tags": [{ "Key": "Name", "Value": "Hello RouteTable" }],
+        "VpcId": { "Ref": "HelloVpc" }
+      }
+    },
+    "HelloSubnetPrivate": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+          "AvailabilityZone": "us-east-1a",
+          "CidrBlock": "10.16.1.0/24",
+          "Tags": [{ "Key": "Name", "Value": "Hello Private Subnet" }],
+          "VpcId": { "Ref": "HelloVpc" }
+        }
+    },
+    "HelloSubnetPublic": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+          "AvailabilityZone": "us-east-1a",
+          "CidrBlock": "10.16.0.0/24",
+          "MapPublicIpOnLaunch": true,
+          "Tags": [{ "Key": "Name", "Value": "Hello Public Subnet" }],
+          "VpcId": { "Ref": "HelloVpc" }
+        }
+    },
+    "HelloSubnetPrivateRouteTableAssociate": {
+      "Type" : "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties" : {
+          "RouteTableId" : { "Ref": "HelloRouteTable" },
+          "SubnetId" : { "Ref": "HelloSubnetPrivate" }
+        }
+    },
+    "HelloSubnetPublicRouteTableAssociate": {
+      "Type" : "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties" : {
+          "RouteTableId" : { "Ref": "HelloRouteTable" },
+          "SubnetId" : { "Ref": "HelloSubnetPublic" }
+        }
+    },
+    "HelloVpcAttach": {
+      "Type": "AWS::EC2::VPCGatewayAttachment",
+      "Properties": {
+          "InternetGatewayId": { "Ref": "HelloIgw" },
+          "VpcId": { "Ref": "HelloVpc" }
+        }
+    },
+    "HelloVpc": {
+      "Type": "AWS::EC2::VPC",
+      "Properties": {
+          "CidrBlock": "10.16.0.0/16",
+          "EnableDnsHostnames": false,
+          "EnableDnsSupport": false,
+          "Tags": [{ "Key": "Name", "Value": "Hello VPC" }]
+        }
+    }
+  }
+}

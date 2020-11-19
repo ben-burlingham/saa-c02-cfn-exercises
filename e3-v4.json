@@ -1,0 +1,132 @@
+{
+  "Resources": {
+    "HelloIgw": {
+      "Type": "AWS::EC2::InternetGateway"
+    },
+    "HelloInstanceBastion": {
+      "Type": "AWS::EC2::Instance",
+      "Properties": {
+          "AvailabilityZone": "us-east-1a",
+          "ImageId": "ami-04bf6dcdc9ab498ca",
+          "InstanceType": "t2.micro",
+          "KeyName": { "Ref": "KeyPairName" },
+          "SecurityGroupIds": [{ "Fn::GetAtt" : ["HelloSgBastion", "GroupId"] }],
+          "SubnetId": { "Ref": "HelloSubnetPublic" },
+          "Tags": [{ "Key": "Name", "Value": "Hello Instance Bastion" }]
+        }
+    },
+    "HelloInstancePrivate": {
+      "Type": "AWS::EC2::Instance",
+      "Properties": {
+          "AvailabilityZone": "us-east-1a",
+          "ImageId": "ami-04bf6dcdc9ab498ca",
+          "InstanceType": "t2.micro",
+          "KeyName": { "Ref": "KeyPairName" },
+          "SecurityGroupIds": [{ "Fn::GetAtt" : ["HelloSgPrivate", "GroupId"] }],
+          "SubnetId": { "Ref": "HelloSubnetPrivate" },
+          "Tags": [{ "Key": "Name", "Value": "Hello Instance Private" }]
+        }
+    },
+    "HelloRoute": {
+      "Type": "AWS::EC2::Route",
+      "Properties": {
+          "DestinationCidrBlock": "0.0.0.0/0",
+          "GatewayId": { "Ref": "HelloIgw" },
+          "RouteTableId": { "Ref": "HelloRouteTable" }
+        }
+    },
+    "HelloRouteTable": {
+      "Type": "AWS::EC2::RouteTable",
+      "Properties": {
+        "Tags": [{ "Key": "Name", "Value": "Hello RouteTable" }],
+        "VpcId": { "Ref": "HelloVpc" }
+      }
+    },
+    "HelloSgBastion": {
+      "Type" : "AWS::EC2::SecurityGroup",
+      "Properties" : {
+          "GroupDescription": "Open to public SSH traffic",
+          "GroupName" : "Bastion public SSH",
+          "SecurityGroupIngress" : [{
+            "CidrIp" : "0.0.0.0/0",
+            "FromPort" : 22,
+            "IpProtocol" : "tcp",
+            "ToPort" : 22
+          }],
+          "VpcId" : { "Ref": "HelloVpc" }
+        }
+    },
+    "HelloSgPrivate": {
+      "Type" : "AWS::EC2::SecurityGroup",
+      "Properties" : {
+          "GroupDescription": "Restricts ingress traffic to only SSH from Bastion",
+          "GroupName" : "Private to Bastion",
+          "SecurityGroupIngress" : [{
+            "CidrIp": { "Fn::Sub": [
+              "${BastionIp}/32",
+              {"BastionIp": { "Fn::GetAtt": ["HelloInstanceBastion", "PrivateIp"] }}
+            ]},
+            "FromPort" : 22,
+            "IpProtocol" : "tcp",
+            "ToPort" : 22
+          }],
+          "VpcId" : { "Ref": "HelloVpc" }
+        }
+    },
+    "HelloSubnetPrivate": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+          "AvailabilityZone": "us-east-1a",
+          "CidrBlock": "10.16.1.0/24",
+          "Tags": [{ "Key": "Name", "Value": "Hello Private Subnet" }],
+          "VpcId": { "Ref": "HelloVpc" }
+        }
+    },
+    "HelloSubnetPublic": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+          "AvailabilityZone": "us-east-1a",
+          "CidrBlock": "10.16.0.0/24",
+          "MapPublicIpOnLaunch": true,
+          "Tags": [{ "Key": "Name", "Value": "Hello Public Subnet" }],
+          "VpcId": { "Ref": "HelloVpc" }
+        }
+    },
+    "HelloSubnetPrivateRouteTableAssociate": {
+      "Type" : "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties" : {
+          "RouteTableId" : { "Ref": "HelloRouteTable" },
+          "SubnetId" : { "Ref": "HelloSubnetPrivate" }
+        }
+    },
+    "HelloSubnetPublicRouteTableAssociate": {
+      "Type" : "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties" : {
+          "RouteTableId" : { "Ref": "HelloRouteTable" },
+          "SubnetId" : { "Ref": "HelloSubnetPublic" }
+        }
+    },
+    "HelloVpcAttach": {
+      "Type": "AWS::EC2::VPCGatewayAttachment",
+      "Properties": {
+          "InternetGatewayId": { "Ref": "HelloIgw" },
+          "VpcId": { "Ref": "HelloVpc" }
+        }
+    },
+    "HelloVpc": {
+      "Type": "AWS::EC2::VPC",
+      "Properties": {
+          "CidrBlock": "10.16.0.0/16",
+          "EnableDnsHostnames": false,
+          "EnableDnsSupport": false,
+          "Tags": [{ "Key": "Name", "Value": "Hello VPC" }]
+        }
+    }
+  },
+  "Parameters": {
+    "KeyPairName": {
+      "Type": "String",
+      "Description": "Name of key pair credential"
+    }
+  }
+}

@@ -1,0 +1,114 @@
+{
+  "Resources": {
+    "HelloGroupDev": {
+      "Type": "AWS::IAM::Group",
+      "Properties": {
+          "GroupName": "hello-group-dev",
+          "ManagedPolicyArns": [ "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess" ]
+        }
+    },
+    "HelloGroupSre": {
+      "Type": "AWS::IAM::Group",
+      "Properties": {
+          "GroupName": "hello-group-sre",
+          "ManagedPolicyArns": [ "arn:aws:iam::aws:policy/AmazonVPCReadOnlyAccess" ]
+        }
+    },
+    "HelloRoleDev": {
+      "Type" : "AWS::IAM::Role",
+      "Properties" : {
+        "AssumeRolePolicyDocument" : {
+          "Statement": {
+            "Effect": "Allow",
+            "Principal": { 
+              "AWS": [
+                { "Fn::GetAtt": [ "HelloUserAlice", "Arn" ] },
+                { "Fn::GetAtt": [ "HelloUserBob", "Arn" ] }
+              ]
+            },
+            "Action": [ "sts:AssumeRole" ]
+          }
+        },
+        "Description" : "Role created via CloudFormation",
+        "ManagedPolicyArns" : [ "arn:aws:iam::aws:policy/AmazonS3FullAccess" ],
+        "RoleName": "DEV"
+      }
+    },
+    "HelloRoleSre": {
+      "Type" : "AWS::IAM::Role",
+      "Properties" : {
+        "AssumeRolePolicyDocument" : {
+          "Statement": {
+            "Effect": "Allow",
+            "Principal": { 
+              "AWS": [
+                { "Fn::GetAtt": [ "HelloUserAlice", "Arn" ] },
+                { "Fn::GetAtt": [ "HelloUserBob", "Arn" ] }
+              ]
+            },
+            "Action": [ "sts:AssumeRole" ]
+          }
+        },
+        "Description" : "Role created via CloudFormation",
+        "ManagedPolicyArns" : [ "arn:aws:iam::aws:policy/AmazonVPCFullAccess" ],
+        "RoleName": "SRE"
+      }
+    },
+    "HelloUserAlice": {
+      "Type": "AWS::IAM::User",
+      "Properties": {
+        "Groups": [{ "Ref": "HelloGroupSre" }],
+        "LoginProfile": {
+          "Password": { "Ref": "InitialPassword" },
+          "PasswordResetRequired": true
+        },
+        "ManagedPolicyArns": [ "arn:aws:iam::aws:policy/IAMUserChangePassword" ],
+        "UserName": "alice.alligator"
+      }
+    },
+    "HelloUserBob": {
+      "Type": "AWS::IAM::User",
+      "Properties": {
+        "Groups": [{ "Ref": "HelloGroupDev" }],
+        "LoginProfile": {
+          "Password": { "Ref": "InitialPassword" },
+          "PasswordResetRequired": true
+        },
+        "ManagedPolicyArns": [ "arn:aws:iam::aws:policy/IAMUserChangePassword" ],
+        "UserName": "bob.badger"
+      }
+    }
+  },
+  "Parameters": {
+    "InitialPassword": {
+      "Type": "String",
+      "Description": "Each of the users will have this initial password, and be prompted to change it."
+    }
+  },
+  "Outputs": {
+    "HelloGroupDevARN": {
+      "Description": "HelloGroupDev ARN",
+      "Value": { "Fn::GetAtt": [ "HelloGroupDev", "Arn" ] }
+    },
+    "HelloGroupSreARN": {
+      "Description": "HelloGroupSre ARN",
+      "Value": { "Fn::GetAtt": [ "HelloGroupSre", "Arn" ] }
+    },
+    "HelloRoleDevARN": {
+      "Description": "HelloRoleDev ARN",
+      "Value": { "Fn::GetAtt": [ "HelloRoleDev", "Arn" ] }
+    },
+    "HelloRoleSreARN": {
+      "Description": "HelloRoleSre ARN",
+      "Value": { "Fn::GetAtt": [ "HelloRoleSre", "Arn" ] }
+    },
+    "HelloUserAliceARN": {
+      "Description": "HelloUserAlice ARN",
+      "Value": { "Fn::GetAtt": [ "HelloUserAlice", "Arn" ] }
+    },
+    "HelloUserBobARN": {
+      "Description": "HelloUserBob ARN",
+      "Value": { "Fn::GetAtt": [ "HelloUserBob", "Arn" ] }
+    }
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "Resources": {
+    "HelloGroupDev": {
+      "Type": "AWS::IAM::Group",
+      "Properties": {
+          "GroupName": "hello-group-dev",
+          "ManagedPolicyArns": [ "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess" ]
+        }
+    },
+    "HelloGroupSre": {
+      "Type": "AWS::IAM::Group",
+      "Properties": {
+          "GroupName": "hello-group-sre",
+          "ManagedPolicyArns": [ "arn:aws:iam::aws:policy/AmazonVPCReadOnlyAccess" ]
+        }
+    },
+    "HelloUserAlice": {
+      "Type": "AWS::IAM::User",
+      "Properties": {
+        "Groups": [{ "Ref": "HelloGroupSre" }],
+        "ManagedPolicyArns": [ "arn:aws:iam::aws:policy/IAMUserChangePassword" ],
+        "UserName": "alice.alligator"
+      }
+    },
+    "HelloUserBob": {
+      "Type": "AWS::IAM::User",
+      "Properties": {
+        "Groups": [{ "Ref": "HelloGroupDev" }],
+        "ManagedPolicyArns": [ "arn:aws:iam::aws:policy/IAMUserChangePassword" ],
+        "UserName": "bob.badger"
+      }
+    }
+  },
+  "Outputs": {
+    "HelloGroupDevARN": {
+      "Description": "HelloGroupDev ARN",
+      "Value": { "Fn::GetAtt": [ "HelloGroupDev", "Arn" ] }
+    },
+    "HelloGroupSreARN": {
+      "Description": "HelloGroupSre ARN",
+      "Value": { "Fn::GetAtt": [ "HelloGroupSre", "Arn" ] }
+    },
+    "HelloUserAliceARN": {
+      "Description": "HelloUserAlice ARN",
+      "Value": { "Fn::GetAtt": [ "HelloUserAlice", "Arn" ] }
+    },
+    "HelloUserBobARN": {
+      "Description": "HelloUserBob ARN",
+      "Value": { "Fn::GetAtt": [ "HelloUserBob", "Arn" ] }
+    }
+  }
+}
