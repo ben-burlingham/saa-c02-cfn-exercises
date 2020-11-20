@@ -53,7 +53,7 @@
       "Type" : "AWS::EC2::SecurityGroup",
       "Properties" : {
           "GroupDescription": "Open to public SSH traffic",
-          "GroupName" : "Bastion public SSH",
+          "GroupName" : "Hello Bastion SG",
           "SecurityGroupIngress" : [{
             "CidrIp" : "0.0.0.0/0",
             "FromPort" : 22,
@@ -67,7 +67,7 @@
       "Type" : "AWS::EC2::SecurityGroup",
       "Properties" : {
           "GroupDescription": "Restricts ingress traffic to only SSH from Bastion",
-          "GroupName" : "Private to Bastion",
+          "GroupName" : "Hello Private SG",
           "SecurityGroupIngress" : [{
             "CidrIp": { "Fn::Sub": [
               "${BastionIp}/32",

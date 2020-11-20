@@ -74,7 +74,7 @@
       "Type" : "AWS::EC2::SecurityGroup",
       "Properties" : {
           "GroupDescription": "Open to public SSH traffic",
-          "GroupName" : "Public instance",
+          "GroupName" : "Hello SG",
           "SecurityGroupIngress" : [{
             "CidrIp" : "0.0.0.0/0",
             "FromPort" : 22,
