@@ -1,66 +1,77 @@
 {
   "Resources": {
-    "HelloGroupDev": {
-      "Type": "AWS::IAM::Group",
+    "HelloBucket": {
+      "Type": "AWS::S3::Bucket",
       "Properties": {
-          "GroupName": "hello-group-dev",
-          "ManagedPolicyArns": [ "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess" ]
-        }
-    },
-    "HelloGroupSre": {
-      "Type": "AWS::IAM::Group",
-      "Properties": {
-          "GroupName": "hello-group-sre",
-          "ManagedPolicyArns": [ "arn:aws:iam::aws:policy/AmazonVPCReadOnlyAccess" ]
-        }
-    },
-    "HelloUserAlice": {
-      "Type": "AWS::IAM::User",
-      "Properties": {
-        "Groups": [{ "Ref": "HelloGroupSre" }],
-        "LoginProfile": {
-          "Password": { "Ref": "InitialPassword" },
-          "PasswordResetRequired": true
+        "AccessControl": "Private",
+        "BucketEncryption": {
+          "ServerSideEncryptionConfiguration": [
+            {
+              "ServerSideEncryptionByDefault": {
+                "SSEAlgorithm": "AES256"
+              }
+            }
+          ]
         },
-        "ManagedPolicyArns": [ "arn:aws:iam::aws:policy/IAMUserChangePassword" ],
-        "UserName": "alice.alligator"
+        "BucketName": { "Fn::Sub": [
+          "hello-bucket-${Suffix}",
+          {"Suffix": { "Ref": "UniqueSuffix" }}
+        ]}
       }
     },
-    "HelloUserBob": {
-      "Type": "AWS::IAM::User",
+    "HelloBucketPolicy": {
+      "Type": "AWS::S3::BucketPolicy",
       "Properties": {
-        "Groups": [{ "Ref": "HelloGroupDev" }],
-        "LoginProfile": {
-          "Password": { "Ref": "InitialPassword" },
-          "PasswordResetRequired": true
+        "Bucket": { "Ref": "HelloBucket" },
+        "PolicyDocument": {
+          "Statement": {
+            "Principal": "*",
+            "Action": "*",
+            "Effect": "Allow",
+            "Resource": {
+              "Fn::Sub": [
+                "arn:aws:s3:::${TargetBucketName}/*",
+                {"TargetBucketName": { "Ref": "HelloBucket" }}
+              ]
+            }
+          }
+        }
+      }
+    },
+    "HelloRole": {
+      "Type" : "AWS::IAM::Role",
+      "Properties" : {
+        "AssumeRolePolicyDocument" : {
+          "Statement": {
+            "Effect": "Allow",
+            "Principal": { "Service": "s3.amazonaws.com" },
+            "Action": [ "sts:AssumeRole" ]
+          }
         },
-        "ManagedPolicyArns": [ "arn:aws:iam::aws:policy/IAMUserChangePassword" ],
-        "UserName": "bob.badger"
+        "Description" : "Role created via CloudFormation",
+        "ManagedPolicyArns" : [ "arn:aws:iam::aws:policy/AdministratorAccess" ],
+        "RoleName": { "Fn::Sub": [
+          "hello-role-${Suffix}",
+          {"Suffix": { "Ref": "UniqueSuffix" }}
+        ]}
       }
     }
   },
   "Parameters": {
-    "InitialPassword": {
+    "UniqueSuffix": {
+      "AllowedPattern": "^[\\d\\w]{5,}$",
       "Type": "String",
-      "Description": "Each of the users will have this initial password, and be prompted to change it."
+      "Description": "Suffixed identifier to provide uniqueness on all names"
     }
   },
-  "Outputs": {
-    "HelloGroupDevARN": {
-      "Description": "HelloGroupDev ARN",
-      "Value": { "Fn::GetAtt": [ "HelloGroupDev", "Arn" ] }
+  "Outputs" : {
+    "HelloBucketArn": {
+      "Description": "HelloBucket ARN",
+      "Value": { "Fn::GetAtt": [ "HelloBucket", "Arn" ] }
     },
-    "HelloGroupSreARN": {
-      "Description": "HelloGroupSre ARN",
-      "Value": { "Fn::GetAtt": [ "HelloGroupSre", "Arn" ] }
-    },
-    "HelloUserAliceARN": {
-      "Description": "HelloUserAlice ARN",
-      "Value": { "Fn::GetAtt": [ "HelloUserAlice", "Arn" ] }
-    },
-    "HelloUserBobARN": {
-      "Description": "HelloUserBob ARN",
-      "Value": { "Fn::GetAtt": [ "HelloUserBob", "Arn" ] }
+    "HelloRoleArn": {
+      "Description": "HelloRole ARN",
+      "Value": { "Fn::GetAtt": [ "HelloRole", "Arn" ] }
     }
   }
 }

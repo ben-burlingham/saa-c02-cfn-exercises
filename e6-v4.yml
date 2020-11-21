@@ -1,0 +1,175 @@
+Resources: 
+  #===== Flow Logs
+  HelloFlowLogVpc: 
+    Type: AWS::EC2::FlowLog
+    Properties: 
+      DeliverLogsPermissionArn: !GetAtt HelloFlowLogRole.Arn
+      LogGroupName: "hello-flow-log-group"
+      ResourceId: !Ref HelloVpc 
+      ResourceType: VPC
+      Tags: 
+        - Key: "Name"
+          Value: "Hello Flow Log VPC"
+      TrafficType: ALL
+  
+  HelloFlowLogSubnet: 
+    Type: AWS::EC2::FlowLog
+    Properties: 
+      DeliverLogsPermissionArn: !GetAtt HelloFlowLogRole.Arn
+      LogGroupName: "hello-flow-log-group"
+      ResourceId: !Ref HelloSubnet 
+      ResourceType: Subnet
+      Tags: 
+        - Key: "Name"
+          Value: "Hello Flow Log Subnet"
+      TrafficType: ALL
+  
+  ##### BEGIN NEW ADDITIONS #####
+
+  HelloFlowLogEni: 
+    Type: AWS::EC2::FlowLog
+    Properties: 
+      DeliverLogsPermissionArn: !GetAtt HelloFlowLogRole.Arn
+      LogGroupName: "hello-flow-log-group"
+      ResourceId: !Ref HelloEni
+      ResourceType: NetworkInterface
+      Tags: 
+        - Key: "Name"
+          Value: "Hello Flow Log Network Interface"
+      TrafficType: ALL
+
+  ##### END NEW ADDITIONS #####
+  
+  HelloFlowLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties: 
+      LogGroupName: "hello-flow-log-group"
+
+  HelloFlowLogRole:
+    Type: AWS::IAM::Role
+    Properties: 
+      AssumeRolePolicyDocument: 
+        Statement:
+          Effect: Allow
+          Principal: 
+            Service:
+              - vpc-flow-logs.amazonaws.com
+          Action: 
+            - 'sts:AssumeRole'     
+      Description: "Hello Flow Log Role"
+      Policies:
+        - PolicyName: "hello-flow-log-policy"
+          PolicyDocument: 
+            Statement:
+              - Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                  - logs:DescribeLogGroups
+                  - logs:DescribeLogStreams
+                Effect: Allow
+                Resource: "*"
+      RoleName: hello-flow-log-role
+
+  #===== EC2 Instance + SG
+  HelloInstance: 
+    Type: AWS::EC2::Instance
+    Properties: 
+      AvailabilityZone: us-east-1a
+      ImageId: ami-04bf6dcdc9ab498ca
+      InstanceType: t2.micro
+      KeyName: !Ref KeyPairName
+      SecurityGroupIds: 
+        - !GetAtt HelloSg.GroupId
+      SubnetId:  !Ref HelloSubnet 
+      Tags: 
+        - Key: "Name"
+          Value: "Hello Instance"
+
+  HelloSg:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+        GroupDescription: Open to any IPV4 traffic
+        GroupName: Hello SG
+        SecurityGroupIngress: 
+          - CidrIp: 0.0.0.0/0
+            IpProtocol: -1
+        VpcId: !Ref HelloVpc
+        
+  ##### BEGIN NEW ADDITIONS #####
+
+  HelloEni:
+    Type: AWS::EC2::NetworkInterface
+    Properties: 
+      # NEED GroupSet HERE FOR SGs?
+      SecondaryPrivateIpAddressCount: 1
+      SubnetId: !Ref HelloSubnet
+      Tags: 
+        - Key: "Name"
+          Value: "Hello ENI"
+
+  HelloEniAttach:
+    Type: AWS::EC2::NetworkInterfaceAttachment
+    Properties: 
+      DeviceIndex: 1
+      InstanceId: !Ref HelloInstance
+      NetworkInterfaceId: !Ref HelloEni
+
+  ##### END NEW ADDITIONS #####
+
+  #===== VPC + IGW
+  HelloVpc:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.16.0.0/16
+      Tags: 
+        - Key: "Name"
+          Value: "Hello VPC"
+  
+  HelloIgw:
+    Type: AWS::EC2::InternetGateway
+      
+  HelloVpcIgwAttach:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref HelloIgw 
+      VpcId: !Ref HelloVpc
+
+  #===== Subnet
+  HelloSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: us-east-1a
+      CidrBlock: 10.16.0.0/24
+      MapPublicIpOnLaunch: true
+      Tags: 
+        - Key: "Name"
+          Value: "Hello Public Subnet"
+      VpcId: !Ref HelloVpc
+
+  #===== Route Table
+  HelloRt:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      Tags: 
+        - Key: "Name"
+          Value: "Hello RT"
+      VpcId: !Ref HelloVpc
+
+  HelloRouteIPv4:
+    Type: AWS::EC2::Route
+    Properties:
+        DestinationCidrBlock: 0.0.0.0/0
+        GatewayId: !Ref HelloIgw 
+        RouteTableId: !Ref HelloRt   
+  
+  HelloRtAssociate:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref HelloRt 
+      SubnetId: !Ref HelloSubnet
+
+Parameters:
+  KeyPairName:
+    Type: String
+    Description: Name of key pair credential

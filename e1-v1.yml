@@ -1,0 +1,19 @@
+Resources: 
+  #===== IAM Groups
+  HelloGroupDev: 
+    Type: AWS::IAM::Group
+    Properties: 
+      GroupName: hello-group-dev
+      ManagedPolicyArns: 
+        - 'arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess'
+  
+  HelloGroupSre: 
+    Type: AWS::IAM::Group
+    Properties: 
+      GroupName: hello-group-sre
+      ManagedPolicyArns: 
+        - 'arn:aws:iam::aws:policy/AmazonVPCReadOnlyAccess'
+
+  
+
+    

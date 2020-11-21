@@ -1,28 +1,27 @@
 {
   "Resources": {
-    "HelloGroupDev": {
-      "Type": "AWS::IAM::Group",
+    "HelloBucket": {
+      "Type": "AWS::S3::Bucket",
       "Properties": {
-          "GroupName": "hello-group-dev",
-          "ManagedPolicyArns": [ "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess" ]
-        }
-    },
-    "HelloGroupSre": {
-      "Type": "AWS::IAM::Group",
-      "Properties": {
-          "GroupName": "hello-group-sre",
-          "ManagedPolicyArns": [ "arn:aws:iam::aws:policy/AmazonVPCReadOnlyAccess" ]
-        }
+        "AccessControl": "Private",
+        "BucketName": { "Fn::Sub": [
+          "hello-bucket-${Suffix}",
+          {"Suffix": { "Ref": "UniqueSuffix" }}
+        ]}
+      }
     }
   },
-  "Outputs": {
-    "HelloGroupDevARN": {
-      "Description": "HelloGroupDev ARN",
-      "Value": { "Fn::GetAtt": [ "HelloGroupDev", "Arn" ] }
-    },
-    "HelloGroupSreARN": {
-      "Description": "HelloGroupSre ARN",
-      "Value": { "Fn::GetAtt": [ "HelloGroupSre", "Arn" ] }
+  "Parameters": {
+    "UniqueSuffix": {
+      "AllowedPattern": "^[\\d\\w]{5,}$",
+      "Type": "String",
+      "Description": "Suffixed identifier to provide uniqueness on all names"
+    }
+  },
+  "Outputs" : {
+    "HelloBucketArn": {
+      "Description": "HelloBucket ARN",
+      "Value": { "Fn::GetAtt": [ "HelloBucket", "Arn" ] }
     }
   }
 }
