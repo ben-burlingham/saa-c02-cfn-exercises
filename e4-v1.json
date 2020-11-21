@@ -1,37 +1,22 @@
 {
   "Resources": {
-    "HelloEip": {
-      "Type": "AWS::EC2::EIP"
-    },
     "HelloIgw": {
       "Type": "AWS::EC2::InternetGateway"
     },
-    "HelloNgw": {
-      "Type": "AWS::EC2::NatGateway",
+    "HelloRoute": {
+      "Type": "AWS::EC2::Route",
       "Properties": {
-         "AllocationId": { "Fn::GetAtt": ["HelloEip", "AllocationId"]},
-         "SubnetId": { "Ref": "HelloSubnetPublic"},
-         "Tags": [ {"Key": "Name", "Value": "Hello NGW" } ]
+          "DestinationCidrBlock": "0.0.0.0/0",
+          "GatewayId": { "Ref": "HelloIgw" },
+          "RouteTableId": { "Ref": "HelloRouteTable" }
         }
     },
-    "HelloSubnetPrivate": {
-      "Type": "AWS::EC2::Subnet",
+    "HelloRouteTable": {
+      "Type": "AWS::EC2::RouteTable",
       "Properties": {
-          "AvailabilityZone": "us-east-1a",
-          "CidrBlock": "10.16.1.0/24",
-          "Tags": [{ "Key": "Name", "Value": "Hello Private Subnet" }],
-          "VpcId": { "Ref": "HelloVpc" }
-        }
-    },
-    "HelloSubnetPublic": {
-      "Type": "AWS::EC2::Subnet",
-      "Properties": {
-          "AvailabilityZone": "us-east-1a",
-          "CidrBlock": "10.16.0.0/24",
-          "MapPublicIpOnLaunch": true,
-          "Tags": [{ "Key": "Name", "Value": "Hello Public Subnet" }],
-          "VpcId": { "Ref": "HelloVpc" }
-        }
+        "Tags": [{ "Key": "Name", "Value": "Hello RouteTable" }],
+        "VpcId": { "Ref": "HelloVpc" }
+      }
     },
     "HelloVpcAttach": {
       "Type": "AWS::EC2::VPCGatewayAttachment",

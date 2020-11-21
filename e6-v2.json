@@ -1,0 +1,86 @@
+{
+  "Resources": {
+    "HelloIgw": {
+      "Type": "AWS::EC2::InternetGateway"
+    },
+    "HelloRouteIPv4": {
+      "Type": "AWS::EC2::Route",
+      "Properties": {
+          "DestinationCidrBlock": "0.0.0.0/0",
+          "GatewayId": { "Ref": "HelloIgw" },
+          "RouteTableId": { "Ref": "HelloRt" }
+        }
+    },
+    "HelloRouteIPv6": {
+      "Type": "AWS::EC2::Route",
+      "Properties": {
+          "DestinationIpv6CidrBlock": "::/0",
+          "GatewayId": { "Ref": "HelloIgw" },
+          "RouteTableId": { "Ref": "HelloRt" }
+        }
+    },
+    "HelloRt": {
+      "Type": "AWS::EC2::RouteTable",
+      "Properties": {
+        "Tags": [{ "Key": "Name", "Value": "Hello RT" }],
+        "VpcId": { "Ref": "HelloVpc" }
+      }
+    },
+    "HelloRtAssociate": {
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties": {
+          "RouteTableId": { "Ref": "HelloRt" },
+          "SubnetId": { "Ref": "HelloSubnet" }
+        }
+    },
+    "HelloSg": {
+      "Type" : "AWS::EC2::SecurityGroup",
+      "Properties" : {
+          "GroupDescription": "Open to any traffic",
+          "GroupName" : "Hello SG",
+          "SecurityGroupIngress" : [{
+            "CidrIpv6" : "::/0",
+            "IpProtocol" : "-1"
+          },
+          {
+            "CidrIp" : "0.0.0.0/0",
+            "IpProtocol" : "-1"
+          }],
+          "VpcId" : { "Ref": "HelloVpc" }
+        }
+    },
+    "HelloSubnet": {
+      "DependsOn": "HelloVpcCidrBlock",
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+          "AssignIpv6AddressOnCreation": true,
+          "AvailabilityZone": "us-east-1a",
+          "CidrBlock" : { "Fn::Select" : [ 0, { "Fn::Cidr" : [{ "Fn::GetAtt" : [ "HelloVpc", "CidrBlock" ]}, 1, 8 ]}]},
+          "Ipv6CidrBlock" : { "Fn::Select" : [ 0, { "Fn::Cidr" : [{ "Fn::Select" : [ 0, { "Fn::GetAtt" : [ "HelloVpc", "Ipv6CidrBlocks" ] } ] }, 1, 64 ]} ] },
+          "Tags": [{ "Key": "Name", "Value": "Hello IPV6 Subnet" }],
+          "VpcId": { "Ref": "HelloVpc" }
+        }
+    },
+    "HelloVpc": {
+      "Type": "AWS::EC2::VPC",
+      "Properties": {
+          "CidrBlock": "10.16.0.0/16",
+          "Tags": [{ "Key": "Name", "Value": "Hello VPC" }]
+        }
+    },
+    "HelloVpcAttach": {
+      "Type": "AWS::EC2::VPCGatewayAttachment",
+      "Properties": {
+          "InternetGatewayId": { "Ref": "HelloIgw" },
+          "VpcId": { "Ref": "HelloVpc" }
+        }
+    },
+    "HelloVpcCidrBlock": {
+      "Type" : "AWS::EC2::VPCCidrBlock",
+      "Properties" : {
+          "AmazonProvidedIpv6CidrBlock": true,
+          "VpcId" : { "Ref": "HelloVpc" }
+        }
+    }
+  }
+}

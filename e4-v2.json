@@ -1,62 +1,29 @@
 {
   "Resources": {
-    "HelloEip": {
-      "Type": "AWS::EC2::EIP"
-    },
     "HelloIgw": {
       "Type": "AWS::EC2::InternetGateway"
     },
-    "HelloNgw": {
-      "Type": "AWS::EC2::NatGateway",
-      "Properties": {
-         "AllocationId": { "Fn::GetAtt": ["HelloEip", "AllocationId"]},
-         "SubnetId": { "Ref": "HelloSubnetPublic"},
-         "Tags": [ {"Key": "Name", "Value": "Hello NGW" } ]
-        }
-    },
-    "HelloRouteIgw": {
+    "HelloRoute": {
       "Type": "AWS::EC2::Route",
       "Properties": {
           "DestinationCidrBlock": "0.0.0.0/0",
           "GatewayId": { "Ref": "HelloIgw" },
-          "RouteTableId": { "Ref": "HelloRtIgw" }
+          "RouteTableId": { "Ref": "HelloRouteTable" }
         }
     },
-    "HelloRouteNgw": {
-      "Type": "AWS::EC2::Route",
-      "Properties": {
-        "DestinationCidrBlock": "0.0.0.0/0",
-        "NatGatewayId": { "Ref": "HelloNgw" },
-        "RouteTableId": { "Ref": "HelloRtNgw" }
-      }
-    },
-    "HelloRtIgw": {
+    "HelloRouteTable": {
       "Type": "AWS::EC2::RouteTable",
       "Properties": {
-        "Tags": [{ "Key": "Name", "Value": "Hello IGW RT" }],
+        "Tags": [{ "Key": "Name", "Value": "Hello RouteTable" }],
         "VpcId": { "Ref": "HelloVpc" }
       }
     },
-    "HelloRtNgw": {
-      "Type": "AWS::EC2::RouteTable",
-      "Properties": {
-        "Tags": [{ "Key": "Name", "Value": "Hello NGW RT" }],
-        "VpcId": { "Ref": "HelloVpc" }
-      }
-    },
-    "HelloRtIgwAssociate": {
-      "Type": "AWS::EC2::SubnetRouteTableAssociation",
-      "Properties": {
-          "RouteTableId": { "Ref": "HelloRtIgw" },
-          "SubnetId": { "Ref": "HelloSubnetPublic" }
+    "HelloRouteTableAssociate": {
+      "Type" : "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties" : {
+          "RouteTableId" : { "Ref": "HelloRouteTable" },
+          "SubnetId" : { "Ref": "HelloSubnetPublic" }
         }
-    },
-    "HelloRtNgwAssociate": {
-      "Type": "AWS::EC2::SubnetRouteTableAssociation",
-      "Properties": {
-        "RouteTableId": { "Ref": "HelloRtNgw" },
-        "SubnetId": { "Ref": "HelloSubnetPrivate" }
-      }
     },
     "HelloSubnetPrivate": {
       "Type": "AWS::EC2::Subnet",

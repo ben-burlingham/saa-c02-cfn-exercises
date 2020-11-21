@@ -101,7 +101,6 @@ Resources:
   HelloEni:
     Type: AWS::EC2::NetworkInterface
     Properties: 
-      # NEED GroupSet HERE FOR SGs?
       SecondaryPrivateIpAddressCount: 1
       SubnetId: !Ref HelloSubnet
       Tags: 

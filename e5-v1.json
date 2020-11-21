@@ -1,30 +1,42 @@
 {
   "Resources": {
-    "HelloSg": {
-      "Type" : "AWS::EC2::SecurityGroup",
-      "Properties" : {
-          "GroupDescription": "Open to any traffic",
-          "GroupName" : "Hello SG",
-          "SecurityGroupIngress" : [{
-            "CidrIpv6" : "::/0",
-            "IpProtocol" : "-1"
-          },
-          {
-            "CidrIp" : "0.0.0.0/0",
-            "IpProtocol" : "-1"
-          }],
-          "VpcId" : { "Ref": "HelloVpc" }
+    "HelloEip": {
+      "Type": "AWS::EC2::EIP"
+    },
+    "HelloIgw": {
+      "Type": "AWS::EC2::InternetGateway"
+    },
+    "HelloNgw": {
+      "Type": "AWS::EC2::NatGateway",
+      "Properties": {
+         "AllocationId": { "Fn::GetAtt": ["HelloEip", "AllocationId"]},
+         "SubnetId": { "Ref": "HelloSubnetPublic"},
+         "Tags": [ {"Key": "Name", "Value": "Hello NGW" } ]
         }
     },
-    "HelloSubnet": {
-      "DependsOn": "HelloVpcCidrBlock",
+    "HelloSubnetPrivate": {
       "Type": "AWS::EC2::Subnet",
       "Properties": {
-          "AssignIpv6AddressOnCreation": true,
           "AvailabilityZone": "us-east-1a",
-          "CidrBlock" : { "Fn::Select" : [ 0, { "Fn::Cidr" : [{ "Fn::GetAtt" : [ "HelloVpc", "CidrBlock" ]}, 1, 8 ]}]},
-          "Ipv6CidrBlock" : { "Fn::Select" : [ 0, { "Fn::Cidr" : [{ "Fn::Select" : [ 0, { "Fn::GetAtt" : [ "HelloVpc", "Ipv6CidrBlocks" ] } ] }, 1, 64 ]} ] },
-          "Tags": [{ "Key": "Name", "Value": "Hello IPV6 Subnet" }],
+          "CidrBlock": "10.16.1.0/24",
+          "Tags": [{ "Key": "Name", "Value": "Hello Private Subnet" }],
+          "VpcId": { "Ref": "HelloVpc" }
+        }
+    },
+    "HelloSubnetPublic": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+          "AvailabilityZone": "us-east-1a",
+          "CidrBlock": "10.16.0.0/24",
+          "MapPublicIpOnLaunch": true,
+          "Tags": [{ "Key": "Name", "Value": "Hello Public Subnet" }],
+          "VpcId": { "Ref": "HelloVpc" }
+        }
+    },
+    "HelloVpcAttach": {
+      "Type": "AWS::EC2::VPCGatewayAttachment",
+      "Properties": {
+          "InternetGatewayId": { "Ref": "HelloIgw" },
           "VpcId": { "Ref": "HelloVpc" }
         }
     },
@@ -32,14 +44,9 @@
       "Type": "AWS::EC2::VPC",
       "Properties": {
           "CidrBlock": "10.16.0.0/16",
+          "EnableDnsHostnames": false,
+          "EnableDnsSupport": false,
           "Tags": [{ "Key": "Name", "Value": "Hello VPC" }]
-        }
-    },
-    "HelloVpcCidrBlock": {
-      "Type" : "AWS::EC2::VPCCidrBlock",
-      "Properties" : {
-          "AmazonProvidedIpv6CidrBlock": true,
-          "VpcId" : { "Ref": "HelloVpc" }
         }
     }
   }
