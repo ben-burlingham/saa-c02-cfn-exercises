@@ -87,6 +87,8 @@
         }
     }
   },
+
+  OMIT THESE
   "Parameters": {
     "KeyPairName": {
       "Type": "String",

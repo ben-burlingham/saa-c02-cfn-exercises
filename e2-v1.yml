@@ -12,8 +12,3 @@ Parameters:
     AllowedPattern: ^[\d\w]{5,}$
     Type: String
     Description: Suffixed identifier to provide uniqueness on all names
-
-Outputs : 
-  HelloBucketArn: 
-    Description: HelloBucket ARN
-    Value:  !GetAtt HelloBucket.Arn

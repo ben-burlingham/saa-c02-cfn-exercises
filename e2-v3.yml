@@ -1,21 +1,37 @@
 Resources: 
+  ##### BEGIN NEW ADDITIONS #####
+  #===== IAM
+  HelloRole: 
+    Type: AWS::IAM::Role
+    Properties: 
+      AssumeRolePolicyDocument: 
+        Statement: 
+          Effect: 'Allow'
+          Principal:  
+            Service: 's3.amazonaws.com' 
+          Action: 
+            - 'sts:AssumeRole'
+      ManagedPolicyArns: 
+        - 'arn:aws:iam::aws:policy/AdministratorAccess'
+      RoleName: !Sub
+        - 'hello-role-${Suffix}'
+        - Suffix: !Ref UniqueSuffix 
+
+  #===== S3
+  ##### END NEW ADDITIONS #####
+
   HelloBucket: 
     Type: AWS::S3::Bucket
     Properties: 
       AccessControl: Private
-
-      ##### BEGIN NEW ADDITIONS #####
       BucketEncryption: 
         ServerSideEncryptionConfiguration:   
           - ServerSideEncryptionByDefault: 
               SSEAlgorithm: AES256
-      ##### END NEW ADDITIONS #####
-
       BucketName: !Sub 
         - 'hello-bucket-${Suffix}'
         - Suffix:  !Ref UniqueSuffix
       
-  ##### BEGIN NEW ADDITIONS #####
   HelloBucketPolicy: 
     Type: AWS::S3::BucketPolicy
     Properties: 
@@ -28,7 +44,6 @@ Resources:
           Resource: !Sub
             - arn:aws:s3:::${TargetBucketName}/*
             - TargetBucketName:  !Ref HelloBucket
-  ##### END NEW ADDITIONS #####
 
 Parameters: 
   UniqueSuffix: 

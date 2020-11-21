@@ -1,37 +1,156 @@
+Resources: 
+  ##### BEGIN NEW ADDITIONS #####
 
-    "HelloNacl": {
-      "Type" : "AWS::EC2::NetworkAcl",
-      "Properties" : {
-          "Tags" : [{ "Key": "Name", "Value": "Hello NACL" }],
-          "VpcId" : { "Ref": "HelloVpc" }
-        }
-    },
-    "HelloNaclAssociate": {
-      "Type" : "AWS::EC2::SubnetNetworkAclAssociation",
-      "Properties" : {
-          "NetworkAclId" : { "Ref": "HelloNacl" },
-          "SubnetId" : { "Ref": "HelloSubnet" }
-        }
-    },
-    "HelloNaclEntry999": {
-      "Type" : "AWS::EC2::NetworkAclEntry",
-      "Properties" : {
-          "CidrBlock" : "::/0",
-          "Egress" : true,
-          "NetworkAclId" : { "Ref": "HelloNacl" },
-          "Protocol" : -1,
-          "RuleAction" : "allow",
-          "RuleNumber" : 999
-        }
-    },
-    "HelloNaclEntry998": {
-      "Type" : "AWS::EC2::NetworkAclEntry",
-      "Properties" : {
-          "CidrBlock" : "::/0",
-          "Egress" : false,
-          "NetworkAclId" : { "Ref": "HelloNacl" },
-          "Protocol" : -1,
-          "RuleAction" : "allow",
-          "RuleNumber" : 998
-        }
-    },
+  #===== NACL
+  HelloNacl: 
+    Type: AWS::EC2::NetworkAcl
+    Properties: 
+      Tags: 
+        - Key: 'Name' 
+          Value: 'Hello NACL'
+      VpcId: !Ref HelloVpc 
+  
+  HelloNaclAssociate: 
+    Type: AWS::EC2::SubnetNetworkAclAssociation
+    Properties: 
+      NetworkAclId: !Ref HelloNacl 
+      SubnetId: !Ref HelloSubnet 
+
+  HelloNaclEntryDenyPing: 
+    Type: AWS::EC2::NetworkAclEntry
+    Properties: 
+      CidrBlock: 1.1.1.1/32
+      Egress: true
+      Icmp: 
+        Code: -1
+        Type: -1
+      NetworkAclId: !Ref HelloNacl 
+      Protocol: 1
+      RuleAction: 'deny'
+      RuleNumber: 93
+
+  HelloNaclEntryAllowIPv4Ingress: 
+    Type: AWS::EC2::NetworkAclEntry
+    Properties: 
+      CidrBlock: 0.0.0.0/0
+      Egress: false
+      Icmp: 
+        Code: -1
+        Type: -1
+      NetworkAclId: !Ref HelloNacl 
+      Protocol: -1
+      RuleAction: 'allow'
+      RuleNumber: 94
+
+  HelloNaclEntryAllowIPv4Egress: 
+    Type: AWS::EC2::NetworkAclEntry
+    Properties: 
+      CidrBlock: 0.0.0.0/0
+      Egress: true
+      NetworkAclId: !Ref HelloNacl 
+      Protocol: -1
+      RuleAction: 'allow'
+      RuleNumber: 95
+    
+  ##### END NEW ADDITIONS #####
+  
+  #===== EC2 Instance + SG
+  HelloInstance: 
+    Type: AWS::EC2::Instance
+    Properties: 
+      AvailabilityZone: us-east-1a
+      IamInstanceProfile: !Ref HelloInstanceProfile
+      ImageId: ami-04bf6dcdc9ab498ca
+      InstanceType: t2.micro
+      SecurityGroupIds: 
+        - !GetAtt HelloSg.GroupId
+      SubnetId:  !Ref HelloSubnet 
+      Tags: 
+        - Key: 'Name'
+          Value: 'Hello Instance'
+
+  HelloSg:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: 'Allow all traffic.'
+      GroupName: 'Hello SG'
+      SecurityGroupIngress: 
+        - CidrIp: 0.0.0.0/0
+          IpProtocol: -1
+      VpcId: !Ref HelloVpc
+
+  #===== IAM
+  HelloRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          Effect: 'Allow'
+          Principal: 
+            Service: 
+              - 'ec2.amazonaws.com'
+          Action: 
+            - 'sts:AssumeRole'
+      Description: 'Hello Role'
+      ManagedPolicyArns: 
+        - 'arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore'
+      RoleName: 'hello-role'
+
+  HelloInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties: 
+      InstanceProfileName: 'hello-instance-profile'
+      Roles: 
+        - !Ref HelloRole
+
+  #===== VPC + IGW
+  HelloVpc:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.16.0.0/16
+      Tags: 
+        - Key: 'Name'
+          Value: 'Hello VPC'
+  
+  HelloIgw:
+    Type: AWS::EC2::InternetGateway
+      
+  HelloVpcIgwAttach:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref HelloIgw 
+      VpcId: !Ref HelloVpc
+
+  #===== Subnet
+  HelloSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: us-east-1a
+      CidrBlock: 10.16.0.0/24
+      MapPublicIpOnLaunch: true
+      Tags: 
+        - Key: 'Name'
+          Value: 'Hello Public Subnet'
+      VpcId: !Ref HelloVpc
+
+  #===== Route Table
+  HelloRt:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      Tags: 
+        - Key: 'Name'
+          Value: 'Hello RT'
+      VpcId: !Ref HelloVpc
+
+  HelloRouteIPv4:
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref HelloIgw 
+      RouteTableId: !Ref HelloRt   
+
+  HelloRtAssociate:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref HelloRt 
+      SubnetId: !Ref HelloSubnet
