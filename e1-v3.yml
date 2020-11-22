@@ -46,7 +46,7 @@ Resources:
       Properties:
         AssumeRolePolicyDocument:
           Statement:
-            Effect: Allow
+            Effect: 'Allow'
             Principal: 
               AWS: 
                 - !GetAtt HelloUserAlice.Arn
@@ -63,7 +63,7 @@ Resources:
     Properties:
       AssumeRolePolicyDocument:
         Statement:
-          Effect: Allow
+          Effect: 'Allow'
           Principal: 
             AWS: 
               - !GetAtt HelloUserAlice.Arn

@@ -1,12 +1,36 @@
 Resources: 
+  #===== IAM
+  HelloRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          Effect: 'Allow'
+          Principal: 
+            Service: 
+              - 'ec2.amazonaws.com'
+          Action: 
+            - 'sts:AssumeRole'
+      Description: 'Hello Role'
+      ManagedPolicyArns: 
+        - 'arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore'
+      RoleName: 'hello-role'
+
+  HelloInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties: 
+      InstanceProfileName: 'hello-instance-profile'
+      Roles: 
+        - !Ref HelloRole
+
   #===== VPC + IGW
   HelloVpc:
     Type: AWS::EC2::VPC
     Properties:
       CidrBlock: '10.16.0.0/16'
       Tags: 
-        - Key: "Name"
-          Value: "Hello VPC"
+        - Key: 'Name'
+          Value: 'Hello VPC'
   
   HelloIgw:
     Type: AWS::EC2::InternetGateway
@@ -25,8 +49,8 @@ Resources:
       CidrBlock: '10.16.0.0/24'
       MapPublicIpOnLaunch: true
       Tags: 
-        - Key: "Name"
-          Value: "Hello Public Subnet"
+        - Key: 'Name'
+          Value: 'Hello Public Subnet'
       VpcId: !Ref HelloVpc
 
   #===== Route Table
@@ -34,8 +58,8 @@ Resources:
     Type: AWS::EC2::RouteTable
     Properties:
       Tags: 
-        - Key: "Name"
-          Value: "Hello RT"
+        - Key: 'Name'
+          Value: 'Hello RT'
       VpcId: !Ref HelloVpc
 
   HelloRouteIPv4:
@@ -44,7 +68,7 @@ Resources:
       DestinationCidrBlock: '0.0.0.0/0'
       GatewayId: !Ref HelloIgw 
       RouteTableId: !Ref HelloRt   
-  
+
   HelloRtAssociate:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:

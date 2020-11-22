@@ -1,30 +1,18 @@
 Resources: 
   ##### BEGIN NEW ADDITIONS #####
   
-  #===== EC2 Instance + SG
+  #===== EC2 Instance
   HelloInstance: 
     Type: AWS::EC2::Instance
     Properties: 
-      AvailabilityZone: us-east-1a
+      AvailabilityZone: 'us-east-1a'
       IamInstanceProfile: !Ref HelloInstanceProfile
       ImageId: ami-04bf6dcdc9ab498ca
-      InstanceType: t2.micro
-      SecurityGroupIds: 
-        - !GetAtt HelloSg.GroupId
+      InstanceType: 't2.micro'
       SubnetId:  !Ref HelloSubnet 
       Tags: 
         - Key: 'Name'
           Value: 'Hello Instance'
-
-  HelloSg:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupDescription: 'Allow all traffic.'
-      GroupName: 'Hello SG'
-      SecurityGroupIngress: 
-        - CidrIp: 0.0.0.0/0
-          IpProtocol: -1
-      VpcId: !Ref HelloVpc
 
   ##### END NEW ADDITIONS #####
   
@@ -45,8 +33,6 @@ Resources:
         - 'arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore'
       RoleName: 'hello-role'
 
-  ##### BEGIN NEW ADDITIONS #####
-
   HelloInstanceProfile:
     Type: AWS::IAM::InstanceProfile
     Properties: 
@@ -54,13 +40,11 @@ Resources:
       Roles: 
         - !Ref HelloRole
 
-  ##### END NEW ADDITIONS #####
-
   #===== VPC + IGW
   HelloVpc:
     Type: AWS::EC2::VPC
     Properties:
-      CidrBlock: 10.16.0.0/16
+      CidrBlock: '10.16.0.0/16'
       Tags: 
         - Key: 'Name'
           Value: 'Hello VPC'
@@ -78,8 +62,8 @@ Resources:
   HelloSubnet:
     Type: AWS::EC2::Subnet
     Properties:
-      AvailabilityZone: us-east-1a
-      CidrBlock: 10.16.0.0/24
+      AvailabilityZone: 'us-east-1a'
+      CidrBlock: '10.16.0.0/24'
       MapPublicIpOnLaunch: true
       Tags: 
         - Key: 'Name'
@@ -98,7 +82,7 @@ Resources:
   HelloRouteIPv4:
     Type: AWS::EC2::Route
     Properties:
-      DestinationCidrBlock: 0.0.0.0/0
+      DestinationCidrBlock: '0.0.0.0/0'
       GatewayId: !Ref HelloIgw 
       RouteTableId: !Ref HelloRt   
 

@@ -3,7 +3,7 @@ Resources:
   HelloVpc:
     Type: AWS::EC2::VPC
     Properties:
-      CidrBlock: 10.16.0.0/16
+      CidrBlock: '10.16.0.0/16'
       Tags: 
         - Key: 'Name'
           Value: 'Hello VPC'
@@ -21,8 +21,8 @@ Resources:
   HelloSubnet:
     Type: AWS::EC2::Subnet
     Properties:
-      AvailabilityZone: us-east-1a
-      CidrBlock: 10.16.0.0/24
+      AvailabilityZone: 'us-east-1a'
+      CidrBlock: '10.16.0.0/24'
       MapPublicIpOnLaunch: true
       Tags: 
         - Key: 'Name'
@@ -41,7 +41,7 @@ Resources:
   HelloRouteIPv4:
     Type: AWS::EC2::Route
     Properties:
-      DestinationCidrBlock: 0.0.0.0/0
+      DestinationCidrBlock: '0.0.0.0/0'
       GatewayId: !Ref HelloIgw 
       RouteTableId: !Ref HelloRt   
 

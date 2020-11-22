@@ -40,13 +40,13 @@ Resources:
         Statement: 
           Principal: '*'
           Action: '*'
-          Effect: Allow
+          Effect: 'Allow'
           Resource: !Sub
             - arn:aws:s3:::${TargetBucketName}/*
             - TargetBucketName:  !Ref HelloBucket
 
 Parameters: 
   UniqueSuffix: 
-    AllowedPattern: ^[\d\w]{5,}$
+    'Allow'edPattern: ^[\d\w]{5,}$
     Type: String
     Description: Suffixed identifier to provide uniqueness on all names

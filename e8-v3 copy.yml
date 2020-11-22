@@ -1,62 +1,13 @@
 Resources: 
   ##### BEGIN NEW ADDITIONS #####
-
-  #===== NACL
-  HelloNacl: 
-    Type: AWS::EC2::NetworkAcl
-    Properties: 
-      Tags: 
-        - Key: 'Name' 
-          Value: 'Hello NACL'
-      VpcId: !Ref HelloVpc 
+  #===== EC2 Instance
   
-  HelloNaclAssociate: 
-    Type: AWS::EC2::SubnetNetworkAclAssociation
-    Properties: 
-      NetworkAclId: !Ref HelloNacl 
-      SubnetId: !Ref HelloSubnet 
-
-  HelloNaclEntryDenyPing: 
-    Type: AWS::EC2::NetworkAclEntry
-    Properties: 
-      CidrBlock: 1.1.1.1/32
-      Egress: true
-      Icmp: 
-        Code: -1
-        Type: -1
-      NetworkAclId: !Ref HelloNacl 
-      Protocol: 1
-      RuleAction: 'deny'
-      RuleNumber: 93
-
-  HelloNaclEntryAllowIPv4Ingress: 
-    Type: AWS::EC2::NetworkAclEntry
-    Properties: 
-      CidrBlock: '0.0.0.0/0'
-      Egress: false
-      Icmp: 
-        Code: -1
-        Type: -1
-      NetworkAclId: !Ref HelloNacl 
-      Protocol: -1
-      RuleAction: 'allow'
-      RuleNumber: 94
-
-  HelloNaclEntryAllowIPv4Egress: 
-    Type: AWS::EC2::NetworkAclEntry
-    Properties: 
-      CidrBlock: '0.0.0.0/0'
-      Egress: true
-      NetworkAclId: !Ref HelloNacl 
-      Protocol: -1
-      RuleAction: 'allow'
-      RuleNumber: 95
-    
-  ##### END NEW ADDITIONS #####
-  
-  #===== EC2 Instance + SG
+  # t2.micro instances don't support EBS-optimized or placement groups.
   HelloInstance: 
     Type: AWS::EC2::Instance
+    CreationPolicy:
+      ResourceSignal:
+        Timeout: PT10M
     Properties: 
       AvailabilityZone: 'us-east-1a'
       IamInstanceProfile: !Ref HelloInstanceProfile
@@ -66,6 +17,50 @@ Resources:
       Tags: 
         - Key: 'Name'
           Value: 'Hello Instance'
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash -xe
+          yum -y update
+          /opt/aws/bin/cfn-init -v --stack ${AWS::StackId} --resource HelloInstance --configsets cwagent --region ${AWS::Region}
+          /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource HelloInstance --region ${AWS::Region}
+    Metadata:
+      AWS::CloudFormation::Init:
+        configSets:
+          cwagent:
+            - createConfig
+            - installCloudwatchAgent
+        createConfig:
+          files:
+            /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json:
+              content: 
+                {
+                  "agent": {
+                    "metrics_collection_interval": 10
+                  },
+                  "logs": {
+                    "logs_collected": {
+                      "files": {
+                        "collect_list": [
+                          {
+                            "file_path": "/opt/aws/amazon-cloudwatch-agent/logs/amazon-cloudwatch-agent.log",
+                            "log_group_name": "hello-log-group.log",
+                            "timezone": "UTC"
+                          }
+                        ]
+                      }
+                    },
+                    "log_stream_name": "hello-log-stream"
+                  }
+                }
+              group: root
+              mode: '000777'
+              owner: root
+        installCloudwatchAgent:
+          packages:
+            yum:
+              amazon-cloudwatch-agent: []
+      
+    ##### END NEW ADDITIONS #####
 
   #===== IAM
   HelloRole:
@@ -82,6 +77,7 @@ Resources:
       Description: 'Hello Role'
       ManagedPolicyArns: 
         - 'arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore'
+        - 'arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy'
       RoleName: 'hello-role'
 
   HelloInstanceProfile:

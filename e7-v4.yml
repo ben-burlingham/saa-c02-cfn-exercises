@@ -50,7 +50,7 @@ Resources:
     Properties: 
       AssumeRolePolicyDocument: 
         Statement:
-          Effect: Allow
+          Effect: 'Allow'
           Principal: 
             Service:
               - vpc-flow-logs.amazonaws.com
@@ -67,7 +67,7 @@ Resources:
                   - logs:PutLogEvents
                   - logs:DescribeLogGroups
                   - logs:DescribeLogStreams
-                Effect: Allow
+                Effect: 'Allow'
                 Resource: "*"
       RoleName: hello-flow-log-role
 
@@ -75,9 +75,9 @@ Resources:
   HelloInstance: 
     Type: AWS::EC2::Instance
     Properties: 
-      AvailabilityZone: us-east-1a
+      AvailabilityZone: 'us-east-1a'
       ImageId: ami-04bf6dcdc9ab498ca
-      InstanceType: t2.micro
+      InstanceType: 't2.micro'
       KeyName: !Ref KeyPairName
       SecurityGroupIds: 
         - !GetAtt HelloSg.GroupId
@@ -92,7 +92,7 @@ Resources:
         GroupDescription: Open to any IPV4 traffic
         GroupName: Hello SG
         SecurityGroupIngress: 
-          - CidrIp: 0.0.0.0/0
+          - CidrIp: '0.0.0.0/0'
             IpProtocol: -1
         VpcId: !Ref HelloVpc
         
@@ -120,7 +120,7 @@ Resources:
   HelloVpc:
     Type: AWS::EC2::VPC
     Properties:
-      CidrBlock: 10.16.0.0/16
+      CidrBlock: '10.16.0.0/16'
       Tags: 
         - Key: "Name"
           Value: "Hello VPC"
@@ -138,8 +138,8 @@ Resources:
   HelloSubnet:
     Type: AWS::EC2::Subnet
     Properties:
-      AvailabilityZone: us-east-1a
-      CidrBlock: 10.16.0.0/24
+      AvailabilityZone: 'us-east-1a'
+      CidrBlock: '10.16.0.0/24'
       MapPublicIpOnLaunch: true
       Tags: 
         - Key: "Name"
@@ -158,7 +158,7 @@ Resources:
   HelloRouteIPv4:
     Type: AWS::EC2::Route
     Properties:
-        DestinationCidrBlock: 0.0.0.0/0
+        DestinationCidrBlock: '0.0.0.0/0'
         GatewayId: !Ref HelloIgw 
         RouteTableId: !Ref HelloRt   
   
