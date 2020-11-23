@@ -9,6 +9,6 @@ Resources:
 
 Parameters: 
   UniqueSuffix: 
-    'Allow'edPattern: ^[\d\w]{5,}$
+    AllowedPattern: ^[\d\w]{5,}$
     Type: String
     Description: Suffixed identifier to provide uniqueness on all names

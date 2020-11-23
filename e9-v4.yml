@@ -1,0 +1,144 @@
+Parameters: 
+  UniqueSuffix: 
+    AllowedPattern: ^[\d\w]{5,}$
+    Type: String
+    Description: Suffixed identifier to provide uniqueness on all names
+
+Resources: 
+  #===== S3
+  HelloBucketEncrypted: 
+    Type: AWS::S3::Bucket
+    Properties: 
+      BucketName: !Sub 'hello-bucket-encrypted-${UniqueSuffix}'
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: 'aws:kms'
+              KMSMasterKeyID: !GetAtt HelloKmsKey.Arn
+  
+  HelloBucketUnencrypted: 
+    Type: AWS::S3::Bucket
+    Properties: 
+      BucketName: !Sub 'hello-bucket-unencrypted-${UniqueSuffix}'
+  
+  HelloBucketUnencryptedPolicy: 
+    Type: AWS::S3::BucketPolicy
+    Properties: 
+      Bucket:  !Ref HelloBucketUnencrypted
+      PolicyDocument: 
+        Statement: 
+          - Principal: 
+              Service: cloudtrail.amazonaws.com
+            Action: 's3:GetBucketAcl'
+            Effect: 'Allow'
+            Resource: !GetAtt HelloBucketUnencrypted.Arn
+          - Principal: 
+              Service: cloudtrail.amazonaws.com
+            Action: 's3:PutObject'
+            Effect: 'Allow'
+            Resource: !Sub '${HelloBucketUnencrypted.Arn}/AWSLogs/${AWS::AccountId}/*'
+            Condition:
+              StringEquals: 
+                s3:x-amz-acl: 'bucket-owner-full-control'
+
+  ##### BEGIN NEW ADDITIONS #####
+  HelloBucketEncryptedPolicy: 
+    Type: AWS::S3::BucketPolicy
+    Properties: 
+      Bucket:  !Ref HelloBucketEncrypted
+      PolicyDocument: 
+        Statement: 
+          - Principal: 
+              Service: cloudtrail.amazonaws.com
+            Action: 's3:GetBucketAcl'
+            Effect: 'Allow'
+            Resource: !GetAtt HelloBucketEncrypted.Arn
+          - Principal: 
+              Service: cloudtrail.amazonaws.com
+            Action: 's3:PutObject'
+            Effect: 'Allow'
+            Resource: !Sub '${HelloBucketEncrypted.Arn}/AWSLogs/${AWS::AccountId}/*'
+            Condition:
+              StringEquals: 
+                s3:x-amz-acl: 'bucket-owner-full-control'
+  ##### END NEW ADDITIONS #####
+
+  #===== CloudTrail
+  HelloCloudTrailUnencrypted:
+    DependsOn: HelloBucketUnencryptedPolicy
+    Type: AWS::CloudTrail::Trail
+    Properties: 
+      IncludeGlobalServiceEvents: true
+      IsLogging: true
+      S3BucketName: !Ref HelloBucketUnencrypted
+      TrailName: hello-cloud-trail-unencrypted
+
+  ##### BEGIN NEW ADDITIONS #####
+  HelloCloudTrailEncrypted:
+    DependsOn: HelloBucketEncryptedPolicy
+    Type: AWS::CloudTrail::Trail
+    Properties: 
+      IncludeGlobalServiceEvents: false
+      IsLogging: true
+      KMSKeyId: !Ref HelloKmsKey 
+      S3BucketName: !Ref HelloBucketEncrypted
+      TrailName: hello-cloud-trail-encrypted
+  ##### END NEW ADDITIONS #####
+
+  #===== KMS
+  HelloKmsKey: 
+    Type: AWS::KMS::Key
+    Properties: 
+      KeyPolicy: 
+        Statement:
+          - Sid: 'Allow access for Key Administrators'
+            Effect: 'Allow'
+            Principal: 
+              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
+            Action: 
+              - 'kms:Create*'
+              - 'kms:Describe*'
+              - 'kms:Enable*'
+              - 'kms:List*'
+              - 'kms:Put*'
+              - 'kms:Update*'
+              - 'kms:Revoke*'
+              - 'kms:Disable*'
+              - 'kms:Get*'
+              - 'kms:Delete*'
+              - 'kms:ScheduleKeyDeletion'
+              - 'kms:CancelKeyDeletion'
+            Resource: '*'
+          - Sid: 'Allow CloudTrail to encrypt logs'
+            Effect: 'Allow'
+            Principal: 
+              Service: 'cloudtrail.amazonaws.com'
+            Action: 
+                - 'kms:GenerateDataKey*'
+            Resource: '*'
+            Condition: 
+              StringLike: 
+                kms:EncryptionContext:aws:cloudtrail:arn: 
+                  !Sub 'arn:aws:cloudtrail:*:${AWS::AccountId}:trail/*'
+          # Comment out this block to observe that the Trail can't be decrypted in S3 ("denied").
+          - Sid: 'Enable CloudTrail log decrypt permissions'
+            Effect: 'Allow'
+            Principal: 
+              AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:user/iamadmin'
+            Action: 
+              - 'kms:Decrypt*'
+            Resource: '*'
+            Condition: 
+              'Null': 
+                kms:EncryptionContext:aws:cloudtrail:arn: false
+          - Sid: 'Allow CloudTrail access'
+            Effect: 'Allow'
+            Principal: 
+              Service: 'cloudtrail.amazonaws.com'
+            Action: 
+              - 'kms:DescribeKey'
+            Resource: '*'
+      Tags: 
+        - Key: 'Name'
+          Value: 'Hello Kms Key'
+

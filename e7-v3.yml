@@ -58,30 +58,42 @@ Resources:
   
   ##### END NEW ADDITIONS #####
 
-  #===== EC2 Instance + SG
+  #===== EC2 Instance
   HelloInstance: 
     Type: AWS::EC2::Instance
     Properties: 
       AvailabilityZone: 'us-east-1a'
+      IamInstanceProfile: !Ref HelloInstanceProfile
       ImageId: ami-04bf6dcdc9ab498ca
       InstanceType: 't2.micro'
-      KeyName: !Ref KeyPairName
-      SecurityGroupIds:
-        - !GetAtt HelloSg.GroupId
       SubnetId:  !Ref HelloSubnet 
       Tags: 
         - Key: "Name"
           Value: "Hello Instance"
 
-  HelloSg:
-    Type: AWS::EC2::SecurityGroup
+  #===== IAM
+  HelloRole:
+    Type: AWS::IAM::Role
     Properties:
-      GroupDescription: Open to any IPV4 traffic
-      GroupName: Hello SG
-      SecurityGroupIngress: 
-        - CidrIp: '0.0.0.0/0'
-          IpProtocol: -1
-      VpcId: !Ref HelloVpc
+      AssumeRolePolicyDocument:
+        Statement:
+          Effect: 'Allow'
+          Principal: 
+            Service: 
+              - 'ec2.amazonaws.com'
+          Action: 
+            - 'sts:AssumeRole'
+      Description: 'Hello Role'
+      ManagedPolicyArns: 
+        - 'arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore'
+      RoleName: 'hello-role'
+
+  HelloInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties: 
+      InstanceProfileName: 'hello-instance-profile'
+      Roles: 
+        - !Ref HelloRole
 
   #===== VPC + IGW
   HelloVpc:
@@ -134,8 +146,3 @@ Resources:
     Properties:
       RouteTableId: !Ref HelloRt 
       SubnetId: !Ref HelloSubnet
-
-Parameters:
-  KeyPairName:
-    Type: String
-    Description: Name of key pair credential
