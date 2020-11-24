@@ -1,0 +1,63 @@
+Resources:
+  #===== ECS
+
+  HelloEcs:
+    Type: AWS::ECS::Service
+    Properties: 
+      Cluster: !Ref HelloCluster
+      DesiredCount: 1
+      LaunchType: 'FARGATE'
+      SchedulingStrategy: 'REPLICA'
+      ServiceName: 'hello-ecs'
+      TaskDefinition: !Ref HelloTask
+
+  HelloCluster:
+    Type: AWS::ECS::Cluster
+    Properties: 
+      CapacityProviders: 
+        - 'FARGATE'
+      ClusterName: 'hello-cluster'
+
+  HelloTask:
+    Type: AWS::ECS::TaskDefinition
+    Properties: 
+      Cpu: 256 
+      ContainerDefinitions: 
+      # - Command: 
+      #   - String
+      # DisableNetworking: true
+      # EntryPoint: 
+      #   - String
+      # Environment: 
+      #   - KeyValuePair
+      # HealthCheck: 
+      #   HealthCheck
+      # Hostname: String
+        - Image: String
+      # Interactive: Boolean
+          LogConfiguration:
+            LogDriver: 'awslogs'
+            Options: 
+              awslogs-group: 'hello-task-log-group'
+              awslogs-region: 'us-east-1'
+              awslogs-stream-prefix: 'hello-task-stream'
+          Name: 'hello-task-container'
+      # PortMappings: 
+      #   - PortMapping
+      # PseudoTerminal: Boolean
+          StopTimeout: 10
+      # User: String
+      # WorkingDirectory: String
+
+      # ExecutionRoleArn: String
+      Family: 'hello-task-family'
+      Memory: 512
+      NetworkMode: 'awsvpc'
+      # ProxyConfiguration: 
+      #   ProxyConfiguration
+      RequiresCompatibilities: 
+        - 'FARGATE'
+      Tags: 
+        - Key: 'Name'
+          Value: 'Hello Task'
+      # TaskRoleArn: String

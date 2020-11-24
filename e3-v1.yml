@@ -21,7 +21,7 @@ Resources:
   HelloSubnet:
     Type: AWS::EC2::Subnet
     Properties:
-      AvailabilityZone: 'us-east-1a'
+      AvailabilityZone: 'us-east-1'
       CidrBlock: '10.16.0.0/24'
       MapPublicIpOnLaunch: true
       Tags: 

@@ -6,7 +6,7 @@ Resources:
       ResourceSignal:
         Timeout: PT3M
     Properties: 
-      AvailabilityZone: 'us-east-1a'
+      AvailabilityZone: 'us-east-1'
       IamInstanceProfile: !Ref HelloInstanceProfile
       ImageId: ami-04bf6dcdc9ab498ca
       InstanceType: 't2.micro'
@@ -120,7 +120,7 @@ Resources:
   HelloSubnet:
     Type: AWS::EC2::Subnet
     Properties:
-      AvailabilityZone: 'us-east-1a'
+      AvailabilityZone: 'us-east-1'
       CidrBlock: '10.16.0.0/24'
       MapPublicIpOnLaunch: true
       Tags: 

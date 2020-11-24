@@ -54,7 +54,7 @@
       "Type": "AWS::EC2::Subnet",
       "Properties": {
           "AssignIpv6AddressOnCreation": true,
-          "AvailabilityZone": "us-east-1a",
+          "AvailabilityZone": "us-east-1",
           "CidrBlock" : { "Fn::Select" : [ 0, { "Fn::Cidr" : [{ "Fn::GetAtt" : [ "HelloVpc", "CidrBlock" ]}, 1, 8 ]}]},
           "Ipv6CidrBlock" : { "Fn::Select" : [ 0, { "Fn::Cidr" : [{ "Fn::Select" : [ 0, { "Fn::GetAtt" : [ "HelloVpc", "Ipv6CidrBlocks" ] } ] }, 1, 64 ]} ] },
           "Tags": [{ "Key": "Name", "Value": "Hello IPV6 Subnet" }],
