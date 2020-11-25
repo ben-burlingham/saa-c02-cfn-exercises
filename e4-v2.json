@@ -28,7 +28,7 @@
     "HelloSubnetPrivate": {
       "Type": "AWS::EC2::Subnet",
       "Properties": {
-          "AvailabilityZone": "us-east-1",
+          "AvailabilityZone": " us-east-1a",
           "CidrBlock": "10.16.1.0/24",
           "Tags": [{ "Key": "Name", "Value": "Hello Private Subnet" }],
           "VpcId": { "Ref": "HelloVpc" }
@@ -37,7 +37,7 @@
     "HelloSubnetPublic": {
       "Type": "AWS::EC2::Subnet",
       "Properties": {
-          "AvailabilityZone": "us-east-1",
+          "AvailabilityZone": " us-east-1a",
           "CidrBlock": "10.16.0.0/24",
           "MapPublicIpOnLaunch": true,
           "Tags": [{ "Key": "Name", "Value": "Hello Public Subnet" }],

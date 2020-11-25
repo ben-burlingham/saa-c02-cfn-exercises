@@ -6,7 +6,7 @@ Resources:
       ResourceSignal:
         Timeout: PT3M
     Properties: 
-      AvailabilityZone: 'us-east-1'
+      AvailabilityZone: !Ref AWS::Region
       IamInstanceProfile: !Ref HelloInstanceProfile
       ImageId: ami-04bf6dcdc9ab498ca
       InstanceType: 't2.micro'
@@ -39,7 +39,7 @@ Resources:
         startCloudwatchAgent:
           commands:
             0_extract_config_from_ssm:
-              command: !Sub aws ssm get-parameter --name=${HelloSsmParameter} --region=us-east-1 --output text --query Parameter.Value > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
+              command: !Sub aws ssm get-parameter --name=${HelloSsmParameter} --region=us-east-1a --output text --query Parameter.Value > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
 
             1_fetch_config_and_start:
               command: sudo amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json -s
@@ -120,7 +120,7 @@ Resources:
   HelloSubnet:
     Type: AWS::EC2::Subnet
     Properties:
-      AvailabilityZone: 'us-east-1'
+      AvailabilityZone: !Ref AWS::Region
       CidrBlock: '10.16.0.0/24'
       MapPublicIpOnLaunch: true
       Tags: 

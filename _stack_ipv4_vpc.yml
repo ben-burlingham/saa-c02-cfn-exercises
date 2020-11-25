@@ -1,0 +1,17 @@
+Resources:
+  HelloVpc: 
+    Type: AWS::EC2::VPC
+    Properties: 
+        CidrBlock: 10.16.0.0/16
+        Tags: 
+          - Key: 'Name'
+            Value: 'Hello VPC'
+
+  HelloIgw:
+    Type: AWS::EC2::InternetGateway
+
+  HelloVpcAttach:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref HelloIgw 
+      VpcId: !Ref HelloVpc

@@ -1,7 +1,35 @@
 {
   "Resources": {
+    "HelloEip": {
+      "Type": "AWS::EC2::EIP"
+    },
+    "HelloEigw": {
+      "Type" : "AWS::EC2::EgressOnlyInternetGateway",
+      "Properties" : {
+          "VpcId" : { "Ref": "HelloVpc" }
+        }
+    },
     "HelloIgw": {
       "Type": "AWS::EC2::InternetGateway"
+    },
+    "HelloInstance": {
+      "Type": "AWS::EC2::Instance",
+      "Properties": {
+          "AvailabilityZone": " us-east-1a",
+          "ImageId": "ami-04bf6dcdc9ab498ca",
+          "InstanceType": "t2.micro",
+          "KeyName": { "Ref": "KeyPairName" },
+          "SecurityGroupIds": [{ "Fn::GetAtt" : ["HelloSg", "GroupId"] }],
+          "SubnetId": { "Ref": "HelloSubnet" },
+          "Tags": [{ "Key": "Name", "Value": "Hello Instance" }]
+        }
+    },
+    "HelloInstanceEipAssociate": {
+      "Type" : "AWS::EC2::EIPAssociation",
+      "Properties" : {
+          "AllocationId": { "Fn::GetAtt": ["HelloEip", "AllocationId"]},
+          "InstanceId" : { "Ref": "HelloInstance" }
+        }
     },
     "HelloRouteIPv4": {
       "Type": "AWS::EC2::Route",
@@ -11,11 +39,11 @@
           "RouteTableId": { "Ref": "HelloRt" }
         }
     },
-    "HelloRouteIPv6": {
+    "HelloRouteEIGW": {
       "Type": "AWS::EC2::Route",
       "Properties": {
           "DestinationIpv6CidrBlock": "::/0",
-          "GatewayId": { "Ref": "HelloIgw" },
+          "EgressOnlyInternetGatewayId": { "Ref": "HelloEigw" },
           "RouteTableId": { "Ref": "HelloRt" }
         }
     },
@@ -54,7 +82,7 @@
       "Type": "AWS::EC2::Subnet",
       "Properties": {
           "AssignIpv6AddressOnCreation": true,
-          "AvailabilityZone": "us-east-1",
+          "AvailabilityZone": " us-east-1a",
           "CidrBlock" : { "Fn::Select" : [ 0, { "Fn::Cidr" : [{ "Fn::GetAtt" : [ "HelloVpc", "CidrBlock" ]}, 1, 8 ]}]},
           "Ipv6CidrBlock" : { "Fn::Select" : [ 0, { "Fn::Cidr" : [{ "Fn::Select" : [ 0, { "Fn::GetAtt" : [ "HelloVpc", "Ipv6CidrBlocks" ] } ] }, 1, 64 ]} ] },
           "Tags": [{ "Key": "Name", "Value": "Hello IPV6 Subnet" }],
@@ -81,6 +109,12 @@
           "AmazonProvidedIpv6CidrBlock": true,
           "VpcId" : { "Ref": "HelloVpc" }
         }
+    }
+  },
+  "Parameters": {
+    "KeyPairName": {
+      "Type": "String",
+      "Description": "Name of key pair credential"
     }
   }
 }
