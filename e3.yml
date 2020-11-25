@@ -1,18 +1,21 @@
 Mappings:
-  Meta:
-    AvailabilityZone: 'us-east-1a'
-    ImageId: 'ami-04bf6dcdc9ab498ca'
-    InstanceType: 't2.micro'
-    UniqueSuffix: 'e3'
+  Instances:
+    Settings:
+      AvailabilityZone: 'us-east-1a'
+      ImageId: 'ami-04bf6dcdc9ab498ca'
+      InstanceType: 't2.micro'
+  Application:
+    Settings:
+      UniqueSuffix: 'e3'
 
 Resources: 
   HelloInstanceA: 
     Type: AWS::EC2::Instance
     Properties: 
-        AvailabilityZone: 'us-east-1a'
+        AvailabilityZone: !FindInMap [ Instances, Settings, AvailabilityZone ]
         IamInstanceProfile: !Ref HelloInstanceProfile
-        ImageId: !FindInMap [ Meta, ImageId ]
-        InstanceType: !FindInMap [ Meta, InstanceType ]
+        ImageId: !FindInMap [ Instances, Settings, ImageId ]
+        InstanceType: !FindInMap [ Instances, Settings, InstanceType ]
         Tags: 
           - Key: 'Name'
             Value: 'Hello Instance A'
@@ -20,10 +23,10 @@ Resources:
   HelloInstanceB: 
     Type: AWS::EC2::Instance
     Properties: 
-        AvailabilityZone: 'us-east-1a'
+        AvailabilityZone: !FindInMap [ Instances, Settings, AvailabilityZone ]
         IamInstanceProfile: !Ref HelloInstanceProfile
-        ImageId: 'ami-04bf6dcdc9ab498ca'
-        InstanceType: 't2.micro'
+        ImageId: !FindInMap [ Instances, Settings, ImageId ]
+        InstanceType: !FindInMap [ Instances, Settings, InstanceType ]
         Tags: 
           - Key: 'Name'
             Value: 'Hello Instance B'
@@ -43,11 +46,15 @@ Resources:
       Description: 'Hello Role'
       ManagedPolicyArns: 
         - 'arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore'
-      RoleName: 'hello-role-REMOVE_THIS_IDENTIFIER'
+      RoleName: !Sub
+        - 'hello-role-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
 
   HelloInstanceProfile:
     Type: AWS::IAM::InstanceProfile
     Properties: 
-      InstanceProfileName: 'hello-instance-profile-REMOVE_THIS_IDENTIFIER'
+      InstanceProfileName: !Sub
+        - 'hello-instance-profile-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
       Roles: 
         - !Ref HelloRole

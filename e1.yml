@@ -15,18 +15,18 @@ Resources:
           - ServerSideEncryptionByDefault: 
               SSEAlgorithm: 'AES256'
       BucketName: !Sub 
-        - 'hello-bucket-${Suffix}'
+        - 'hello-source-${Suffix}'
         - Suffix:  !Ref UniqueSuffix
       ReplicationConfiguration: 
         Role: !GetAtt HelloRole.Arn
         Rules: 
           - Destination : 
-              Bucket: !GetAtt HelloReplicate.Arn
+              Bucket: !GetAtt HelloBucketDestination.Arn
             Status : 'Enabled'
       VersioningConfiguration: 
         Status: 'Enabled'
 
-  HelloBucketReplicate: 
+  HelloBucketDestination: 
     Type: AWS::S3::Bucket
     Properties: 
       AccessControl: Private
@@ -35,38 +35,38 @@ Resources:
           - ServerSideEncryptionByDefault: 
               SSEAlgorithm: 'AES256'
       BucketName: !Sub
-        - 'hello-replicate-${Suffix}'
+        - 'hello-destination-${Suffix}'
         - Suffix: !Ref UniqueSuffix 
       VersioningConfiguration:  
         Status: Enabled 
 
   #===== Bucket policy
-  # HelloBucketPolicy: 
-  #   Type: AWS::S3::BucketPolicy
-  #   Properties: 
-  #     Bucket:  !Ref HelloBucket
-  #     PolicyDocument: 
-  #       Statement: 
-  #         Principal: '*'
-  #         Action: '*'
-  #         Effect: 'Allow'
-  #         Resource: !Sub
-  #           - arn:aws:s3:::${TargetBucketName}/*
-  #           - TargetBucketName:  !Ref HelloBucket
+  HelloBucketSourcePolicy: 
+    Type: AWS::S3::BucketPolicy
+    Properties: 
+      Bucket:  !Ref HelloBucketSource
+      PolicyDocument: 
+        Statement: 
+          Principal: '*'
+          Action: '*'
+          Effect: 'Allow'
+          Resource: !Sub
+            - arn:aws:s3:::${TargetBucketName}/*
+            - TargetBucketName:  !Ref HelloBucketSource
 
   #===== IAM
-  # HelloRole: 
-  #   Type: AWS::IAM::Role
-  #   Properties: 
-  #     AssumeRolePolicyDocument: 
-  #       Statement: 
-  #         Effect: 'Allow'
-  #         Principal:  
-  #           Service: 's3.amazonaws.com' 
-  #         Action: 
-  #           - 'sts:AssumeRole'
-  #     ManagedPolicyArns: 
-  #       - 'arn:aws:iam::aws:policy/AdministratorAccess'
-  #     RoleName: !Sub
-  #       - 'hello-role-${Suffix}'
-  #       - Suffix: !Ref UniqueSuffix 
+  HelloRole: 
+    Type: AWS::IAM::Role
+    Properties: 
+      AssumeRolePolicyDocument: 
+        Statement: 
+          Effect: 'Allow'
+          Principal:  
+            Service: 's3.amazonaws.com' 
+          Action: 
+            - 'sts:AssumeRole'
+      ManagedPolicyArns: 
+        - 'arn:aws:iam::aws:policy/AdministratorAccess'
+      RoleName: !Sub
+        - 'hello-role-${Suffix}'
+        - Suffix: !Ref UniqueSuffix 
