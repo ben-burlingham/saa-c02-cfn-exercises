@@ -1,19 +1,15 @@
 Resources:
+  #===== Logs
+  HelloLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: 'hello-ecs-log-group'
+
   #===== ECS
-  # Don't think I even want this? it's for defining capacity?
-  # HelloEcs:
-  #   Type: AWS::ECS::Service
-  #   Properties: 
-  #     Cluster: !Ref HelloCluster
-  #     DesiredCount: 1
-  #     LaunchType: 'FARGATE'
-  #     NetworkConfiguration: 
-  #       AwsvpcConfiguration:
-  #         Subnets: 
-  #           - !Ref HelloSubnet
-  #     SchedulingStrategy: 'REPLICA'
-  #     ServiceName: 'hello-ecs'
-  #     TaskDefinition: !Ref HelloTask
+  HelloEcrHelloWorld:
+    Type: AWS::ECR::Repository
+    Properties: 
+      RepositoryName: hello-ecr-hello-world
 
   HelloCluster:
     Type: AWS::ECS::Cluster
@@ -30,16 +26,16 @@ Resources:
       ContainerDefinitions: 
         - Command: 
           - '/hello'
-          Image: 'docker.io/library/hello-world:latest'
+          Image: !Sub '${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${HelloEcrHelloWorld}:latest'
           LogConfiguration:
             LogDriver: 'awslogs'
             Options: 
               awslogs-group: !Ref HelloLogGroup
-              awslogs-region: 'us-east-1'
+              awslogs-region: !Sub ${AWS::Region}
               awslogs-stream-prefix: 'hello-task-stream'
           Name: 'hello-task-container'
           StopTimeout: 10
-      ExecutionRoleArn: !GetAtt HelloRole.Arn
+      ExecutionRoleArn: !GetAtt HelloRoleTaskExecution.Arn
       Family: 'hello-task-family'
       Memory: 512
       NetworkMode: 'awsvpc'
@@ -49,13 +45,8 @@ Resources:
         - Key: 'Name'
           Value: 'Hello Task'
 
-  HelloLogGroup:
-    Type: AWS::Logs::LogGroup
-    Properties:
-      LogGroupName: 'hello-task-log-group'
-
   #===== IAM
-  HelloRole:
+  HelloRoleTaskExecution:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -71,18 +62,32 @@ Resources:
         - 'arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy'
       RoleName: 'hello-role'
 
-  # HelloRole2:
-  #   Type: AWS::IAM::Role
-  #   Properties:
-  #     AssumeRolePolicyDocument:
-  #       Statement:
-  #         Effect: 'Allow'
-  #         Principal: 
-  #           Service: 
-  #             - 'ecs.amazonaws.com'
-  #         Action: 
-  #           - 'sts:AssumeRole'
-  #     Description: 'Hello Role'
-  #     ManagedPolicyArns: 
-  #       - 'arn:aws:iam::aws:policy/aws-service-role/AmazonECSServiceRolePolicy'
-  #     RoleName: 'hello-role2'    
+  # # HelloEcsInstanceRole:
+  # #   Type: AWS::IAM::Role
+  # #   Properties:
+  # #     AssumeRolePolicyDocument:
+  # #       Statement:
+  # #         Effect: 'Allow'
+  # #         Principal: 
+  # #           Service: 
+  # #             - 'ecs.amazonaws.com'
+  # #         Action: 
+  # #           - 'sts:AssumeRole'
+  # #     Description: 'Hello Role'
+  # #     ManagedPolicyArns: 
+  # #       - 'arn:aws:iam::aws:policy/aws-service-role/AmazonECSServiceRolePolicy'
+  # #     RoleName: 'hello-role2'    
+
+    ########### ecsInstanceRole
+  # "Statement": [
+  #       {
+  #           "Effect": "Allow",
+  #           "Action": [
+  #               "ecr:BatchCheckLayerAvailability",
+  #               "ecr:BatchGetImage",
+  #               "ecr:GetDownloadUrlForLayer",
+  #               "ecr:GetAuthorizationToken"
+  #           ],
+  #           "Resource": "*"
+  #       }
+  #   ]

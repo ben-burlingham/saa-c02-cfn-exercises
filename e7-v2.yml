@@ -6,7 +6,7 @@ Resources:
   HelloInstance: 
     Type: AWS::EC2::Instance
     Properties: 
-      AvailabilityZone: !Ref AWS::Region
+      AvailabilityZone: 'us-east-1a'
       IamInstanceProfile: !Ref HelloInstanceProfile
       ImageId: ami-04bf6dcdc9ab498ca
       InstanceType: 't2.micro'
@@ -63,7 +63,7 @@ Resources:
   HelloSubnet:
     Type: AWS::EC2::Subnet
     Properties:
-      AvailabilityZone: !Ref AWS::Region
+      AvailabilityZone: 'us-east-1a'
       CidrBlock: '10.16.0.0/24'
       MapPublicIpOnLaunch: true
       Tags: 

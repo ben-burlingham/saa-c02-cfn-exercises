@@ -1,3 +1,17 @@
+# HelloEcs:
+#   Type: AWS::ECS::Service
+#   Properties: 
+#     Cluster: !Ref HelloCluster
+#     DesiredCount: 1
+#     LaunchType: 'FARGATE'
+#     NetworkConfiguration: 
+#       AwsvpcConfiguration:
+#         Subnets: 
+#           - !Ref HelloSubnet
+#     SchedulingStrategy: 'REPLICA'
+#     ServiceName: 'hello-ecs'
+#     TaskDefinition: !Ref HelloTask
+
 
   ##### BEGIN NEW ADDITIONS #####
 
