@@ -82,12 +82,12 @@ Resources:
       Description: 'Hello Role'
       ManagedPolicyArns: 
         - 'arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore'
-      RoleName: 'hello-role'
+      RoleName: 'hello-role-REMOVE_THIS_IDENTIFIER2'
 
   HelloInstanceProfile:
     Type: AWS::IAM::InstanceProfile
     Properties: 
-      InstanceProfileName: 'hello-instance-profile'
+      InstanceProfileName: 'hello-instance-profile-REMOVE_THIS_IDENTIFIER2'
       Roles: 
         - !Ref HelloRole
 

@@ -1,37 +1,81 @@
 Resources: 
-  HelloBucket: 
-    Type: AWS::S3::Bucket
-    Properties: 
-      AccessControl: Private
-
-      ##### BEGIN NEW ADDITIONS #####
-      BucketEncryption: 
-        ServerSideEncryptionConfiguration:   
-          - ServerSideEncryptionByDefault: 
-              SSEAlgorithm: AES256
-      ##### END NEW ADDITIONS #####
-
-      BucketName: !Sub 
-        - 'hello-bucket-${Suffix}'
-        - Suffix:  !Ref UniqueSuffix
-      
   ##### BEGIN NEW ADDITIONS #####
-  HelloBucketPolicy: 
-    Type: AWS::S3::BucketPolicy
-    Properties: 
-      Bucket:  !Ref HelloBucket
-      PolicyDocument: 
-        Statement: 
-          Principal: '*'
-          Action: '*'
+  
+  #===== IAM
+  HelloRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
           Effect: 'Allow'
-          Resource: !Sub
-            - arn:aws:s3:::${TargetBucketName}/*
-            - TargetBucketName:  !Ref HelloBucket
+          Principal: 
+            Service: 
+              - 'ec2.amazonaws.com'
+          Action: 
+            - 'sts:AssumeRole'
+      Description: 'Hello Role'
+      ManagedPolicyArns: 
+        - 'arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore'
+      RoleName: 'hello-role'
+
+  HelloInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties: 
+      InstanceProfileName: 'hello-instance-profile'
+      Roles: 
+        - !Ref HelloRole
+
   ##### END NEW ADDITIONS #####
 
-Parameters: 
-  UniqueSuffix: 
-    AllowedPattern: ^[\d\w]{5,}$
-    Type: String
-    Description: Suffixed identifier to provide uniqueness on all names
+  #===== VPC + IGW
+  HelloVpc:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: '10.16.0.0/16'
+      Tags: 
+        - Key: 'Name'
+          Value: 'Hello VPC'
+  
+  HelloIgw:
+    Type: AWS::EC2::InternetGateway
+      
+  HelloVpcIgwAttach:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref HelloIgw 
+      VpcId: !Ref HelloVpc
+
+  #===== Subnet
+  HelloSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: 'us-east-1a'
+      CidrBlock: '10.16.0.0/24'
+      MapPublicIpOnLaunch: true
+      Tags: 
+        - Key: 'Name'
+          Value: 'Hello Public Subnet'
+      VpcId: !Ref HelloVpc
+
+  #===== Route Table
+  HelloRt:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      Tags: 
+        - Key: 'Name'
+          Value: 'Hello RT'
+      VpcId: !Ref HelloVpc
+
+  HelloRouteIPv4:
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: '0.0.0.0/0'
+      GatewayId: !Ref HelloIgw 
+      RouteTableId: !Ref HelloRt  
+
+  HelloRtAssociate:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref HelloRt 
+      SubnetId: !Ref HelloSubnet
+
