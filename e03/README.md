@@ -5,20 +5,6 @@
 - EBS (Elastic Block Store)
 - EFS (Elastic File System)
 
-<!-- EC2, EBS, EFS
-  Task: Create two EC2 instances on the default network.
-  Verify: Connect with Session Manager to each instance.
-  
-  v2 Create EBS volume, attach to both
-    Put something in it and see in both
-  v3 Create EFS volume attach to both
-    Put something in it and see in both
-
-  Goal: Attach encrypted EBS volume using KMS key.
-  
-  
-  https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/device_naming.html#available-ec2-device-names   -->
-
 ---
 
 ## Exercise 1: 

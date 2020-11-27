@@ -16,8 +16,8 @@ https://docs.aws.amazon.com/cli/latest/reference/cloudformation/update-stack.htm
   aws cloudformation create-stack 
     --profile iamadmin-general 
     --capabilities CAPABILITY_NAMED_IAM 
-    --template-body file://eX-vY.yml 
-    --stack-name helloN
+    --template-body file://eX/eX.yml 
+    --stack-name helloY
 
 Study topics:
 - Which services are region/ha resilient
@@ -202,34 +202,6 @@ Study topics:
     Goal: Create Cloudtrail that delivers data to encrypted bucket.
     Verify: Observe Cloudtrail logs in encrypted bucket.
 
-==================== E10: ECR, ECS (Fargate mode)
-
-  v1: 
-    Goal: Create an ECR repository with the Docker Official `hello-world` image.
-    https://hub.docker.com/_/hello-world
-    https://docs.docker.com/docker-hub/download-rate-limit/
-    https://docs.docker.com/engine/reference/commandline/inspect/
-    https://docs.aws.amazon.com/AmazonECR/latest/userguide/ECR_on_ECS.html
-    https://docs.aws.amazon.com/AmazonECR/latest/userguide/Registries.html
-    https://docs.aws.amazon.com/AmazonECR/latest/userguide/docker-push-ecr-image.html
-
-  v2: 
-    Goal: Create log group.
-    Goal: Create the task execution role.
-    https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_execution_IAM_role.html
-
-  v3: 
-    Goal: Create Fargate cluster.
-    https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ecs-cluster.html
-
-  v4: 
-    Goal: Run `/hello` command from a task in Fargate mode (without creating a service).
-    Goal: See output from `/hello` in Cloudwatch.
-    https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ecs-taskdefinition.html
-    https://docs.aws.amazon.com/AmazonECS/latest/developerguide/example_task_definitions.html
-    https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ecs-taskdefinition-containerdefinitions-logconfiguration.html
-    https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_execution_IAM_role.html
-
 ==================== E11: ECS (EC2 mode), ALB, ASG
 https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ecs-service.html
 https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ecs-service-awsvpcconfiguration.html
@@ -240,3 +212,4 @@ https://hub.docker.com/_/httpd
 ==================== ZZZ
 R53 "Hosted Zones" and "Health Check"
 S3 static hosting
+IOPS

@@ -71,6 +71,16 @@ Resources:
         - !Ref HelloSgEfs
       SubnetId: !Ref HelloSubnet
 
+  HelloSgEfs: 
+    Type: AWS::EC2::SecurityGroup
+    Properties: 
+      GroupDescription: 'Open to IPv4 traffic'
+      GroupName: 'Hello SG EFS'
+      SecurityGroupIngress: 
+        CidrIp: '0.0.0.0/0'
+        IpProtocol: -1
+      VpcId: !Ref HelloVpc 
+
   #===== IAM
   HelloRole:
     Type: AWS::IAM::Role
@@ -124,16 +134,6 @@ Resources:
         - Key: 'Name'
           Value: 'Hello Public Subnet'
       VpcId: !Ref HelloVpc
-
-  HelloSgEfs: 
-    Type: AWS::EC2::SecurityGroup
-    Properties: 
-      GroupDescription: 'Open to IPv4 traffic'
-      GroupName: 'Hello SG EFS'
-      SecurityGroupIngress: 
-        CidrIp: '0.0.0.0/0'
-        IpProtocol: -1
-      VpcId: !Ref HelloVpc 
 
   HelloRt:
     Type: AWS::EC2::RouteTable
