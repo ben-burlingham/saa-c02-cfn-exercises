@@ -15,24 +15,6 @@
 
   ##### BEGIN NEW ADDITIONS #####
 
-  #===== EBS
-  # t2.micro instances don't support EBS-optimized or placement groups.
-  HelloVolume:
-    Type: AWS::EC2::Volume
-    Properties: 
-      AvailabilityZone: !GetAtt HelloInstance.AvailabilityZone
-      Encrypted: true
-      # KmsKeyId: String
-      Size: 1
-      Tags: 
-        - Key: 'Name'
-          Value: 'Hello Volume'
 
-  HelloVolumeAttach:
-    Type: AWS::EC2::VolumeAttachment
-    Properties:
-      Device: /dev/sdh
-      InstanceId: !Ref HelloInstance
-      VolumeId: !Ref HelloVolume
 
   ##### END NEW ADDITIONS #####

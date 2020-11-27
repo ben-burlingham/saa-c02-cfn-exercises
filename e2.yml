@@ -54,7 +54,7 @@ Resources:
     
   ##### END NEW ADDITIONS #####
   
-  #===== EC2 Instance + SG
+  #===== EC2 Instance
   HelloInstance: 
     Type: AWS::EC2::Instance
     Properties: 

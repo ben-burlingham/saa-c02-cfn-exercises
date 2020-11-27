@@ -1,0 +1,157 @@
+Mappings:
+  Instances:
+    Settings:
+      ImageId: 'ami-04bf6dcdc9ab498ca'
+      InstanceType: 't2.micro'
+  Network:
+    Settings:
+      SubnetCidrBlock: '10.16.0.0/24'
+      VpcCidrBlock: '10.16.0.0/16'
+  Application:
+    Settings:
+      AvailabilityZone: 'us-east-1a'
+      UniqueSuffix: 'e3'
+
+Resources: 
+  #===== EC2
+  HelloInstanceA: 
+    Type: AWS::EC2::Instance
+    Properties: 
+      AvailabilityZone: !FindInMap [ Application, Settings, AvailabilityZone ]
+      IamInstanceProfile: !Ref HelloInstanceProfile
+      ImageId: !FindInMap [ Instances, Settings, ImageId ]
+      InstanceType: !FindInMap [ Instances, Settings, InstanceType ]
+      SubnetId:  !Ref HelloSubnet 
+      Tags: 
+        - Key: 'Name'
+          Value: 'Hello Instance A'
+  
+  HelloInstanceB: 
+    Type: AWS::EC2::Instance
+    Properties: 
+      AvailabilityZone: !FindInMap [ Application, Settings, AvailabilityZone ]
+      IamInstanceProfile: !Ref HelloInstanceProfile
+      ImageId: !FindInMap [ Instances, Settings, ImageId ]
+      InstanceType: !FindInMap [ Instances, Settings, InstanceType ]
+      SubnetId:  !Ref HelloSubnet 
+      Tags: 
+        - Key: 'Name'
+          Value: 'Hello Instance B'
+        
+  #===== EBS
+  # t2.micro instances don't support EBS-optimized or placement groups.
+  HelloEbsVolume:
+    Type: AWS::EC2::Volume
+    Properties: 
+      AvailabilityZone: !FindInMap [ Application, Settings, AvailabilityZone ]
+      Encrypted: true
+      Size: 1
+      Tags: 
+        - Key: 'Name'
+          Value: 'Hello Volume'
+  
+  HelloVolumeAttach:
+    Type: AWS::EC2::VolumeAttachment
+    Properties:
+      Device: /dev/sdh
+      InstanceId: !Ref HelloInstanceA
+      VolumeId: !Ref HelloEbsVolume
+
+  #===== EFS
+  HelloEfs:
+    Type: AWS::EFS::FileSystem
+    Properties:
+      Encrypted: true 
+
+  HelloEfsMountTarget:
+    Type: AWS::EFS::MountTarget
+    Properties: 
+      FileSystemId: !Ref HelloEfs
+      SecurityGroups:
+        - !Ref HelloSgEfs
+      SubnetId: !Ref HelloSubnet
+
+  #===== IAM
+  HelloRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          Effect: 'Allow'
+          Principal: 
+            Service: 
+              - 'ec2.amazonaws.com'
+          Action: 
+            - 'sts:AssumeRole'
+      Description: 'Hello Role'
+      ManagedPolicyArns: 
+        - 'arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore'
+      RoleName: !Sub
+        - 'hello-role-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+
+  HelloInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties: 
+      InstanceProfileName: !Sub
+        - 'hello-instance-profile-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+      Roles: 
+        - !Ref HelloRole
+
+  #====== Network
+  HelloVpc:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !FindInMap [ Network, Settings, VpcCidrBlock ]
+  
+  HelloIgw:
+    Type: AWS::EC2::InternetGateway
+      
+  HelloVpcIgwAttach:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref HelloIgw 
+      VpcId: !Ref HelloVpc
+
+  HelloSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !FindInMap [ Application, Settings, AvailabilityZone ]
+      CidrBlock: !FindInMap [ Network, Settings, SubnetCidrBlock ]
+      MapPublicIpOnLaunch: true
+      Tags: 
+        - Key: 'Name'
+          Value: 'Hello Public Subnet'
+      VpcId: !Ref HelloVpc
+
+  HelloSgEfs: 
+    Type: AWS::EC2::SecurityGroup
+    Properties: 
+      GroupDescription: 'Open to IPv4 traffic'
+      GroupName: 'Hello SG EFS'
+      SecurityGroupIngress: 
+        CidrIp: '0.0.0.0/0'
+        IpProtocol: -1
+      VpcId: !Ref HelloVpc 
+
+  HelloRt:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      Tags: 
+        - Key: 'Name'
+          Value: 'Hello RT'
+      VpcId: !Ref HelloVpc
+
+  HelloRouteIPv4:
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: '0.0.0.0/0'
+      GatewayId: !Ref HelloIgw 
+      RouteTableId: !Ref HelloRt   
+
+  HelloRtAssociate:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref HelloRt 
+      SubnetId: !Ref HelloSubnet

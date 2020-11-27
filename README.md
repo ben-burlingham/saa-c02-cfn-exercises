@@ -1,11 +1,13 @@
 # Welcome 
 
 Cloud Lab
-Goal: Dependency-free implementations. Pattern reuse in further evolutions.
+Goal: Dependency-free implementations. Pattern reuse in further evolutions. Intentionally vague to encourage research.
 
 Hello Automation
 
 Prereqs:  `iamadmin-general` account
+
+Mappings used for settings. Occasional parameter.
 
 https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/template-anatomy.html
 
@@ -44,19 +46,6 @@ Study topics:
     https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-network-acl.html
     https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-subnet-network-acl-assoc.html
 
-================ NEW E3: EC2, EBS, EFS
-  Task: Create two EC2 instances on the default network.
-  Verify: Connect with Session Manager to each instance.
-  
-  v2 Create EBS volume, attach to both
-    Put something in it and see in both
-  v3 Create EFS volume attach to both
-    Put something in it and see in both
-
-  Goal: Attach encrypted EBS volume using KMS key.
-  https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-ebs-volume.html
-  https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-ebs-volumeattachment.html
-  https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/device_naming.html#available-ec2-device-names  
 
 ================ E4: VPC Bastion
 
@@ -221,6 +210,7 @@ Study topics:
     https://docs.docker.com/docker-hub/download-rate-limit/
     https://docs.docker.com/engine/reference/commandline/inspect/
     https://docs.aws.amazon.com/AmazonECR/latest/userguide/ECR_on_ECS.html
+    https://docs.aws.amazon.com/AmazonECR/latest/userguide/Registries.html
     https://docs.aws.amazon.com/AmazonECR/latest/userguide/docker-push-ecr-image.html
 
   v2: 
