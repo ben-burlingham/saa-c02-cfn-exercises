@@ -25,28 +25,6 @@ Study topics:
 - https://github.com/alozano-77/AWS-SAA-C02-Course/tree/master/Learning-Aids
 - Use LucidChart diagrams? UML?
 
-================= E2
-  Topics: EC2 Session Manager, VPCs, subnets, route tables, NACL
-
-  MAPPINGS FOR COMMON VALUES
-  REWRITE VERSIONS/GOALS
-
-  v1 
-    Goal: Create network components.
-
-  v2 
-    Goal: Create instance profile for upcoming EC2 instance.
-
-  v3 
-    Goal: Connect to instance with the role.
-    Goal: 0% packet loss ping to 1.1.1.1 
-
-  v4 
-    Goal: 100% packet loss ping to 1.1.1.1 
-    https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-network-acl.html
-    https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-subnet-network-acl-assoc.html
-
-
 ================ E4: VPC Bastion
 
   SPLIT UP
@@ -201,7 +179,6 @@ Study topics:
   v4 
     Goal: Create Cloudtrail that delivers data to encrypted bucket.
     Verify: Observe Cloudtrail logs in encrypted bucket.
-
 
 E12 HTTPD ALB. 
 

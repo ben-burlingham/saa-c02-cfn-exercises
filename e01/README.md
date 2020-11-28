@@ -1,6 +1,4 @@
-# Evolution 1
-
-### Topics:
+# Topics
 - S3 (Simple Storage Service) buckets
 - SSE-S3 encryption
 - S3 bucket policy
@@ -11,39 +9,39 @@
 
 ---
 
-## Exercise 1: 
+## Exercise 1
 Create two SSE-S3 encrypted buckets.
 - [S3 Bucket Resource](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket.html)
 - [S3 Encryption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket-serversideencryptionbydefault.html)
 
-### Verify
+**Verify:**
 - Upload a file to each bucket.
 
 ---
 
-## Exercise 2: 
+## Exercise 2 
 Apply bucket policy to Source bucket. Allow any principal to take any action.
 - [S3 Bucket Policy](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-policy.html)
 - [Example Bucket Policies](https://docs.aws.amazon.com/AmazonS3/latest/dev/example-bucket-policies.html)
 
-### Verify 
+**Verify:** 
 - Access a file via HTTP in each bucket. Source should allow, Destination should deny.
 
 ---
 
-## Exercise 3: 
+## Exercise 3 
 Create trust policy role for replication service to assume.
 - [ReplicationConfiguration permissions](https://docs.aws.amazon.com/AmazonS3/latest/dev/setting-repl-config-perm-overview.html)
 - [S3 ARN](https://docs.aws.amazon.com/AmazonS3/latest/dev/s3-arn-format.html)
 
-### Verify 
+**Verify:** 
 - Observe new role in IAM console.
 
 ---
 
-## Exercise 4: 
+## Exercise 4 
 Configure replication and versioning for source and destination.
 - [ReplicationConfiguration](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket-replicationconfiguration.html)
 
-### Verify 
+**Verify:** 
 - Watch an uploaded file appear in replicate bucket.

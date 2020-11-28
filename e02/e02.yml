@@ -1,13 +1,18 @@
-Resources: 
-  ##### BEGIN NEW ADDITIONS #####
+Mappings:
+  Application:
+    Settings:
+      UniqueSuffix: 'e02'
 
+Resources: 
   #===== NACL
   HelloNacl: 
     Type: AWS::EC2::NetworkAcl
     Properties: 
       Tags: 
         - Key: 'Name' 
-          Value: 'Hello NACL'
+          Value: !Sub
+            - 'Hello NACL ${UniqueSuffix}'
+            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
       VpcId: !Ref HelloVpc 
   
   HelloNaclAssociate: 
@@ -51,8 +56,6 @@ Resources:
       Protocol: -1
       RuleAction: 'allow'
       RuleNumber: 95
-    
-  ##### END NEW ADDITIONS #####
   
   #===== EC2 Instance
   HelloInstance: 
@@ -65,7 +68,9 @@ Resources:
       SubnetId:  !Ref HelloSubnet 
       Tags: 
         - Key: 'Name'
-          Value: 'Hello Instance'
+          Value: !Sub
+            - 'Hello instance ${UniqueSuffix}'
+            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
 
   #===== IAM
   HelloRole:
@@ -82,12 +87,16 @@ Resources:
       Description: 'Hello Role'
       ManagedPolicyArns: 
         - 'arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore'
-      RoleName: 'hello-role-REMOVE_THIS_IDENTIFIER2'
+      RoleName: !Sub
+        - 'hello-role-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
 
   HelloInstanceProfile:
     Type: AWS::IAM::InstanceProfile
     Properties: 
-      InstanceProfileName: 'hello-instance-profile-REMOVE_THIS_IDENTIFIER2'
+      InstanceProfileName: !Sub
+        - 'hello-instance-profile-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
       Roles: 
         - !Ref HelloRole
 
@@ -98,7 +107,9 @@ Resources:
       CidrBlock: '10.16.0.0/16'
       Tags: 
         - Key: 'Name'
-          Value: 'Hello VPC'
+          Value: !Sub
+            - 'Hello VPC ${UniqueSuffix}'
+            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
   
   HelloIgw:
     Type: AWS::EC2::InternetGateway
@@ -118,7 +129,9 @@ Resources:
       MapPublicIpOnLaunch: true
       Tags: 
         - Key: 'Name'
-          Value: 'Hello Public Subnet'
+          Value: !Sub
+            - 'Hello subnet ${UniqueSuffix}'
+            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
       VpcId: !Ref HelloVpc
 
   #===== Route Table
@@ -127,7 +140,9 @@ Resources:
     Properties:
       Tags: 
         - Key: 'Name'
-          Value: 'Hello RT'
+          Value: !Sub
+            - 'Hello RT ${UniqueSuffix}'
+            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
       VpcId: !Ref HelloVpc
 
   HelloRouteIPv4:
