@@ -1,13 +1,11 @@
-# Evolution 3
-
-### Topics:
+# Topics
 - EC2 (Elastic Compute Cloud)
 - EBS (Elastic Block Store)
 - EFS (Elastic File System)
 
 ---
 
-## Exercise 1: 
+## Exercise 1
 Create two EC2 instances, A and B, and the role to connect to them.
 - Refer to previous evolution(s) if necessary. 
 
@@ -16,7 +14,7 @@ Create two EC2 instances, A and B, and the role to connect to them.
 
 ---
 
-## Exercise 2: 
+## Exercise 2
 Create a VPC, subnet, and security group.
 - Refer to previous evolution(s) if necessary. 
 
@@ -26,7 +24,7 @@ Create a VPC, subnet, and security group.
 
 ---
 
-## Exercise 3: 
+## Exercise 3
 Create a file inside an encrypted EBS volume attached to instance A.
 - [EBS volumes](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-ebs-volume.html)
 - [EBS volume attachment](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-ebs-volumeattachment.html)
@@ -37,7 +35,7 @@ Create a file inside an encrypted EBS volume attached to instance A.
 
 ---
 
-## Exercise 4: 
+## Exercise 4
 Create an EFS instance and mount it to both instances.
 
 Simplest commands to mount. Substitute the private IP address of the EFS.

@@ -1,0 +1,82 @@
+Mappings:
+  Application:
+    Settings:
+      UniqueSuffix: 'e11'
+
+Resources:
+  #===== Logs
+  HelloLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub
+        - 'hello-ecs-log-group-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+
+  #===== ECS
+  HelloEcrHelloWorld:
+    Type: AWS::ECR::Repository
+    Properties: 
+      RepositoryName: !Sub
+        - 'hello-ecr-hello-world-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+
+  HelloCluster:
+    Type: AWS::ECS::Cluster
+    Properties: 
+      CapacityProviders: 
+        - 'FARGATE'
+      ClusterName: !Sub
+        - 'hello-cluster-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+
+  HelloTask:
+    DependsOn: HelloLogGroup
+    Type: AWS::ECS::TaskDefinition
+    Properties: 
+      Cpu: 256 
+      ContainerDefinitions: 
+        - Command: 
+          - '/hello'
+          Image: !Sub '${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${HelloEcrHelloWorld}:latest'
+          LogConfiguration:
+            LogDriver: 'awslogs'
+            Options: 
+              awslogs-group: !Ref HelloLogGroup
+              awslogs-region: !Sub ${AWS::Region}
+              awslogs-stream-prefix: !Sub
+                - 'hello-task-stream-${UniqueSuffix}'
+                - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+          Name: !Sub
+            - 'hello-task-container-${UniqueSuffix}'
+            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+          StopTimeout: 10
+      ExecutionRoleArn: !GetAtt HelloRoleTaskExecution.Arn
+      Family: !Sub
+        - 'hello-task-family-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+      Memory: 512
+      NetworkMode: 'awsvpc'
+      RequiresCompatibilities: 
+        - 'FARGATE'
+      Tags: 
+        - Key: 'Name'
+          Value: 'Hello Task'
+
+  #===== IAM
+  HelloRoleTaskExecution:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          Effect: 'Allow'
+          Principal: 
+            Service: 
+              - 'ecs-tasks.amazonaws.com'
+          Action: 
+            - 'sts:AssumeRole'
+      Description: 'Hello Role'
+      ManagedPolicyArns: 
+        - 'arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy'
+      RoleName: !Sub
+        - 'hello-role-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]

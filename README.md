@@ -202,14 +202,13 @@ Study topics:
     Goal: Create Cloudtrail that delivers data to encrypted bucket.
     Verify: Observe Cloudtrail logs in encrypted bucket.
 
-==================== E11: ECS (EC2 mode), ALB, ASG
-https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ecs-service.html
-https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ecs-service-awsvpcconfiguration.html
-https://github.com/awslabs/aws-cloudformation-templates/tree/master/aws/services/ECS/FargateLaunchType
-https://github.com/1Strategy/fargate-cloudformation-example/blob/master/fargate.yaml
-https://hub.docker.com/_/httpd
+
+E12 HTTPD ALB. 
+
+E13 RDS + CNAME. RDS BACKUP, RESTORE. RDS MULTI AZ. RDS READ REPLICAS.
 
 ==================== ZZZ
 R53 "Hosted Zones" and "Health Check"
 S3 static hosting
 IOPS
+"Spot" instances (https://docs.aws.amazon.com/autoscaling/ec2/userguide/capacity-rebalance.html, https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-as-launchconfig.html#cfn-as-launchconfig-spotprice)

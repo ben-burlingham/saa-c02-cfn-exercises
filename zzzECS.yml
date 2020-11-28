@@ -1,0 +1,44 @@
+
+# HelloEcs:
+#   Type: AWS::ECS::Service
+#   Properties: 
+#     Cluster: !Ref HelloCluster
+#     DesiredCount: 1
+#     LaunchType: 'FARGATE'
+#     NetworkConfiguration: 
+#       AwsvpcConfiguration:
+#         Subnets: 
+#           - !Ref HelloSubnet
+#     SchedulingStrategy: 'REPLICA'
+#     ServiceName: 'hello-ecs'
+#     TaskDefinition: !Ref HelloTask
+
+  # # HelloEcsInstanceRole:
+  # #   Type: AWS::IAM::Role
+  # #   Properties:
+  # #     AssumeRolePolicyDocument:
+  # #       Statement:
+  # #         Effect: 'Allow'
+  # #         Principal: 
+  # #           Service: 
+  # #             - 'ecs.amazonaws.com'
+  # #         Action: 
+  # #           - 'sts:AssumeRole'
+  # #     Description: 'Hello Role'
+  # #     ManagedPolicyArns: 
+  # #       - 'arn:aws:iam::aws:policy/aws-service-role/AmazonECSServiceRolePolicy'
+  # #     RoleName: 'hello-role2'    
+
+    ########### ecsInstanceRole
+  # "Statement": [
+  #       {
+  #           "Effect": "Allow",
+  #           "Action": [
+  #               "ecr:BatchCheckLayerAvailability",
+  #               "ecr:BatchGetImage",
+  #               "ecr:GetDownloadUrlForLayer",
+  #               "ecr:GetAuthorizationToken"
+  #           ],
+  #           "Resource": "*"
+  #       }
+  #   ]

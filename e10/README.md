@@ -1,49 +1,38 @@
-# Evolution 10
-
-### Topics:
-- EC2 (Elastic Compute Cloud)
-- ECS (Elastic Container Service)
-- ECR (Elastic Container Registry)
-- Fargate mode
+# Topics
+- EC2 Auto Scaling 
+- Launch Templates
+- Cloudwatch Alarms
 
 ---
 
-## Exercise 1: 
-Create an ECR repository for the Docker Official `hello-world` image.
-- [Official Hello World Image](https://hub.docker.com/_/hello-world)
-- [Docker image rate limits](https://docs.docker.com/docker-hub/download-rate-limit/)
-- [Docker image inspect](https://docs.docker.com/engine/reference/commandline/inspect/)
-- [Pushing Docker image to ECR](https://docs.aws.amazon.com/AmazonECR/latest/userguide/getting-started-cli.html)
+## Exercise 1 
+Create an ASG of EC2 instances with minimum 1, maximum 2.
+- [Overview](https://docs.aws.amazon.com/autoscaling/ec2/userguide/what-is-amazon-ec2-auto-scaling.html)
+- [Launch Template properties](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-launchtemplate.html)
+- [Auto Scaling Group properties](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-as-group.html)
 
 **Verify:** 
-- Push the `hello-world` image to the ECR repository.
+- Terminate the instance and observe ASG eventually re-provision a new one.
 
 ---
 
-## Exercise 2: 
-Create a log group.
-Create the task execution role.
-- [Task execution role](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_execution_IAM_role.html)
-    
-
-**Verify:** 
-- Observe role and group in AWS console.
-
----
-
-## Exercise 3: 
-Create Fargate cluster and task definition.
-- [ECS Cluster](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ecs-cluster.html)
-- [Task Definition](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ecs-taskdefinition.html)
+## Exercise 2
+Add a Cloudwatch alarm for > 20% CPU utilization.
+- [Cloudwatch Alarm](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cw-alarm.html)
+- [Stress utility install](https://gist.github.com/mikepfeiffer/d27f5c478bef92e8aff4241154b77e54)
+- [ASG alarm example](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cw-dimension.html)
 
 **Verify:**
-- Observe task and container definitions in ECS console.
+- Install `stress` on the EC2 instance (with `amazon-linux-extras`) and breach the alarm with `stress -c 2 -v -t 60`.
 
 ---
 
-## Exercise 4: 
-Add log group configuration to task container, then run `/hello` command in Fargate mode (without creating a service).
-- [Container log configuration](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ecs-taskdefinition-containerdefinitions-logconfiguration.html)
+## Exercise 3
+
+Add a step scaling policy tracking CPU utilization.
+
+https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/quickref-autoscaling.html
+https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-as-policy.html
 
 **Verify:**
-- See output from `/hello` in Cloudwatch.
+- Breach the alarm via `stress` and observe ASG create a new instance.
