@@ -10,7 +10,7 @@ Mappings:
   Application:
     Settings:
       AvailabilityZone: 'us-east-1a'
-      UniqueSuffix: 'e3'
+      UniqueSuffix: 'e03'
 
 Resources: 
   #===== EC2
@@ -114,6 +114,11 @@ Resources:
     Type: AWS::EC2::VPC
     Properties:
       CidrBlock: !FindInMap [ Network, Settings, VpcCidrBlock ]
+      Tags:
+        - Key: 'Name'
+          Value: !Sub
+            - 'Hello VPC ${UniqueSuffix}'
+            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
   
   HelloIgw:
     Type: AWS::EC2::InternetGateway
@@ -130,9 +135,11 @@ Resources:
       AvailabilityZone: !FindInMap [ Application, Settings, AvailabilityZone ]
       CidrBlock: !FindInMap [ Network, Settings, SubnetCidrBlock ]
       MapPublicIpOnLaunch: true
-      Tags: 
+      Tags:
         - Key: 'Name'
-          Value: 'Hello Public Subnet'
+          Value: !Sub
+            - 'Hello subnet ${UniqueSuffix}'
+            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
       VpcId: !Ref HelloVpc
 
   HelloRt:
@@ -140,7 +147,9 @@ Resources:
     Properties:
       Tags: 
         - Key: 'Name'
-          Value: 'Hello RT'
+          Value: !Sub
+            - 'Hello RT ${UniqueSuffix}'
+            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
       VpcId: !Ref HelloVpc
 
   HelloRouteIPv4:

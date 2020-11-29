@@ -2,6 +2,7 @@
 
 Cloud Lab
 Goal: Dependency-free implementations. Pattern reuse in further evolutions. Intentionally vague to encourage research.
+complete in serial
 
 Hello Automation
 
@@ -78,36 +79,6 @@ Study topics:
   v4 VPC, IGW, NGW + EIP, public + private subnets, IGW RT, NWG RT, public EC2 + SG, private EC2 + SG
     Goal: ping 1.1.1.1 from private
 
-================ E6: VPC IPv6
-
-  MAPPINGS FOR COMMON VALUES
-  SPLIT UP
-  REWRITE VERSIONS/GOALS
-  POSSIBLE TO SESSION CONNECT TO v1?
-
-  Connectivity to the IPv6 internet requires router and/or ISP support. See https://ipv6-test.com/ or http://test-ipv6.com/.
-
-  To test manually, must enable port forwarding with "eval `ssh-agent.exe`" and `ssh-add mykey.pem`
-
-  v1 
-    Goal: REDO Create IPv6 network components
-    https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-subnet.html
-    https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-vpccidrblock.html
-    https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference-cidr.html
-    https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-dependson.html
-    
-  v2 IPv6 VPC, IPv6 subnet, IGW, IPv4 RT
-    Goal: REDO Attach IGW, enable all IPv4 addresses and protocols
-
-  v3 IPv6 VPC, IPv6 subnet, IGW, IPv4 RT, EC2, EIP
-    Goal: `ping6 ipv6.google.com` from instance
-    Goal: 0% packet loss ping from http://ipv6now.com.au/pingme.php
-    Note: Assign EIP to ENI of IPv6 EC2 instance for IPv4 (https://serverfault.com/questions/846387)
-    https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-eip-association.html
-
-  v4 IPv6 VPC, IPv6 subnet, IGW, IPv4 RT, EC2, EIP, EIGW, IPv6 RT
-    Goal: `ping6 ipv6.google.com` from instance
-    Goal: 100% packet loss ping from http://ipv6now.com.au/pingme.php
     
 ================= E7: Flow Logs
 
@@ -180,12 +151,23 @@ Study topics:
     Goal: Create Cloudtrail that delivers data to encrypted bucket.
     Verify: Observe Cloudtrail logs in encrypted bucket.
 
-E12 HTTPD ALB. 
 
-E13 RDS + CNAME. RDS BACKUP, RESTORE. RDS MULTI AZ. RDS READ REPLICAS.
+E06 REWRITE
 
-==================== ZZZ
+E12 ECS
+
+E14 NLB + SSL (Websocket?)
+
+E15 ALB + API Gateway (S3 static host?)
+
+E16 Event bridge + lambda
+
+==================== YYY
+Event bridge
 R53 "Hosted Zones" and "Health Check"
 S3 static hosting
 IOPS
 "Spot" instances (https://docs.aws.amazon.com/autoscaling/ec2/userguide/capacity-rebalance.html, https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-as-launchconfig.html#cfn-as-launchconfig-spotprice)
+
+==================== ZZZ
+ECS 

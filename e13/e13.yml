@@ -1,0 +1,135 @@
+Mappings:
+  Network:
+    Settings:
+      VpcCidrBlock: '10.16.0.0/16'
+  Application:
+    Settings:
+      AvailabilityZone: 'us-east-1a'
+      UniqueSuffix: 'e13'
+
+Resources:
+  #===== RDS
+  HelloDbSource:
+    Type: AWS::RDS::DBInstance
+    Properties: 
+      AllocatedStorage: 20
+      BackupRetentionPeriod: 1
+      DBInstanceClass: 'db.t2.micro'
+      DBSubnetGroupName: !Ref HelloDbSubnetGroup
+      Engine: 'postgres'
+      MasterUsername: 'postgres'
+      MasterUserPassword: 'password'
+      MultiAZ: true
+      PubliclyAccessible: true
+      VPCSecurityGroups:
+        - !Ref HelloSgVpc
+
+  HelloDbReadReplica:
+    Type: AWS::RDS::DBInstance
+    Properties: 
+      AllocatedStorage: 20
+      DBInstanceClass: 'db.t2.micro'
+      Engine: 'postgres'
+      PubliclyAccessible: true
+      SourceDBInstanceIdentifier: !Ref HelloDbSource
+      VPCSecurityGroups:
+        - !Ref HelloSgVpc
+
+  HelloDbSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties: 
+      DBSubnetGroupDescription: 'us-east-1a and us-east-1b'
+      SubnetIds: 
+        - !Ref HelloSubnetEast1a
+        - !Ref HelloSubnetEast1b
+
+  #====== VPC
+  HelloVpc:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !FindInMap [ Network, Settings, VpcCidrBlock ]
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      Tags:
+        - Key: 'Name'
+          Value: !Sub
+            - 'Hello VPC ${UniqueSuffix}'
+            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+  
+  HelloIgw:
+    Type: AWS::EC2::InternetGateway
+      
+  HelloVpcIgwAttach:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref HelloIgw 
+      VpcId: !Ref HelloVpc
+
+  HelloSgVpc: 
+    Type: AWS::EC2::SecurityGroup
+    Properties: 
+      GroupDescription: 'Open to all IPv4 traffic'
+      GroupName: !Sub
+        - 'Hello SG VPC ${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+      SecurityGroupIngress:
+        CidrIp: '0.0.0.0/0'
+        IpProtocol: -1
+      VpcId: !Ref HelloVpc
+
+  #===== Subnets
+  HelloSubnetEast1a:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: 'us-east-1a'
+      CidrBlock: '10.16.0.0/24'
+      MapPublicIpOnLaunch: true
+      Tags: 
+        - Key: 'Name'
+          Value: !Sub
+            - 'Hello Subnet us-east-1a ${UniqueSuffix}'
+            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+      VpcId: !Ref HelloVpc
+  
+  HelloSubnetEast1b:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: 'us-east-1b'
+      CidrBlock: '10.16.1.0/24'
+      MapPublicIpOnLaunch: true
+      Tags: 
+        - Key: 'Name'
+          Value: !Sub
+            - 'Hello Subnet us-east-1b ${UniqueSuffix}'
+            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+      VpcId: !Ref HelloVpc
+
+  #===== Route Table
+  HelloRt:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      Tags: 
+        - Key: 'Name'
+          Value: !Sub
+            - 'Hello RT ${UniqueSuffix}'
+            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+      VpcId: !Ref HelloVpc
+
+  HelloRouteIPv4:
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: '0.0.0.0/0'
+      GatewayId: !Ref HelloIgw 
+      RouteTableId: !Ref HelloRt   
+
+  HelloRtAssociateA:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref HelloRt 
+      SubnetId: !Ref HelloSubnetEast1a
+
+  HelloRtAssociateB:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref HelloRt 
+      SubnetId: !Ref HelloSubnetEast1b

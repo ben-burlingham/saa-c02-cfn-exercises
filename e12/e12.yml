@@ -1,61 +1,58 @@
 Mappings:
   Application:
     Settings:
-      UniqueSuffix: 'e11'
+      UniqueSuffix: 'e12'
 
 Resources:
-  #===== Logs
-  HelloLogGroup:
-    Type: AWS::Logs::LogGroup
-    Properties:
-      LogGroupName: !Sub
-        - 'hello-ecs-log-group-${UniqueSuffix}'
-        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
-
-  #===== ECS
-  HelloEcrHelloWorld:
+  HelloEcrHttpd:
     Type: AWS::ECR::Repository
     Properties: 
-      RepositoryName: 'hello-ecr-hello-world'
-
+      RepositoryName: 'hello-ecr-httpd'
+      
   HelloCluster:
     Type: AWS::ECS::Cluster
     Properties: 
-      CapacityProviders: 
-        - 'FARGATE'
+      CapacityProviders:
+        - HelloCapacityProvider
       ClusterName: !Sub
         - 'hello-cluster-${UniqueSuffix}'
         - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
 
-  HelloTask:
-    DependsOn: HelloLogGroup
-    Type: AWS::ECS::TaskDefinition
+  HelloCapacityProvider:
+    Type: AWS::ECS::CapacityProvider
     Properties: 
-      Cpu: 256 
+      AutoScalingGroupProvider: 
+        AutoScalingGroupArn: String
+      Name: String
+      Tags: 
+        - Tag
+
+  HelloTask:
+    # DependsOn: HelloLogGroup
+    Type: AWS::ECS::TaskDefinition
+    Properties:
       ContainerDefinitions: 
-        - Command: 
-          - '/hello'
-          Image: !Sub '${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${HelloEcrHelloWorld}:latest'
-          LogConfiguration:
-            LogDriver: 'awslogs'
-            Options: 
-              awslogs-group: !Ref HelloLogGroup
-              awslogs-region: !Sub ${AWS::Region}
-              awslogs-stream-prefix: !Sub
-                - 'hello-task-stream-${UniqueSuffix}'
-                - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+        # - Command: 
+        #   - '/hello'
+        - Image: !Sub '${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${HelloEcrHttpd}:latest'
+          # LogConfiguration:
+          #   LogDriver: 'awslogs'
+          #   Options: 
+          #     awslogs-group: !Ref HelloLogGroup
+          #     awslogs-region: !Sub ${AWS::Region}
+          #     awslogs-stream-prefix: !Sub
+          #       - 'hello-task-stream-${UniqueSuffix}'
+          #       - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
           Name: !Sub
             - 'hello-task-container-${UniqueSuffix}'
             - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
           StopTimeout: 10
+      Cpu: 256
       ExecutionRoleArn: !GetAtt HelloRoleTaskExecution.Arn
       Family: !Sub
         - 'hello-task-family-${UniqueSuffix}'
         - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
       Memory: 512
-      NetworkMode: 'awsvpc'
-      RequiresCompatibilities: 
-        - 'FARGATE'
       Tags: 
         - Key: 'Name'
           Value: 'Hello Task'

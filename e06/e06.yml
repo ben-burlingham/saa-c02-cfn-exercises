@@ -1,0 +1,142 @@
+Mappings:
+  Instances:
+    Settings:
+      ImageId: 'ami-04bf6dcdc9ab498ca'
+      InstanceType: 't2.micro'
+  Network:
+    Settings:
+      SubnetCidrBlock: '10.16.0.0/24'
+      VpcCidrBlock: '10.16.0.0/16'
+  Application:
+    Settings:
+      AvailabilityZone: 'us-east-1a'
+      UniqueSuffix: 'e06'
+
+Resources:
+  #===== EC2
+  HelloInstance: 
+    Type: AWS::EC2::Instance
+    Properties: 
+      AvailabilityZone: !FindInMap [ Application, Settings, AvailabilityZone ]
+      IamInstanceProfile: !Ref HelloInstanceProfile
+      ImageId: !FindInMap [ Instances, Settings, ImageId ]
+      InstanceType: !FindInMap [ Instances, Settings, InstanceType ]
+      SubnetId:  !Ref HelloSubnet 
+      Tags: 
+        - Key: 'Name' 
+          Value: !Sub
+            - 'Hello Instance ${UniqueSuffix}'
+            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+
+  #===== IAM
+  HelloRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          Effect: 'Allow'
+          Principal: 
+            Service: 
+              - 'ec2.amazonaws.com'
+          Action: 
+            - 'sts:AssumeRole'
+      Description: 'Hello Role'
+      ManagedPolicyArns: 
+        - 'arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore'
+      RoleName: 'hello-role'
+
+  HelloInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties: 
+      InstanceProfileName: 'hello-instance-profile'
+      Roles: 
+        - !Ref HelloRole
+
+  #===== Network
+  HelloVpc:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !FindInMap [ Network, Settings, VpcCidrBlock ]
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      Tags: 
+        - Key: 'Name'
+          Value: !Sub
+            - 'Hello VPC ${UniqueSuffix}'
+            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+
+  HelloIgw:
+    Type: AWS::EC2::InternetGateway
+
+  HelloVpcIgwAttach:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref HelloIgw 
+      VpcId: !Ref HelloVpc
+
+  HelloSubnet: 
+    # DependsOn: HelloVpcCidrBlock
+    Type: AWS::EC2::Subnet
+    Properties: 
+        # AssignIpv6AddressOnCreation: true
+        AvailabilityZone: 'us-east-1a'
+        CidrBlock:  !Select [ 0,  !Cidr [ !GetAtt HelloVpc.CidrBlock, 1, 8 ]]
+        # Ipv6CidrBlock:  !Select [ 0,  !Cidr [ !Select [ 0,  !GetAtt HelloVpc.Ipv6CidrBlocks  ] , 1, 64 ] ]
+        Tags: 
+          - Key: 'Name'
+            Value: !Sub
+              - 'Hello subnet ${UniqueSuffix}'
+              - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+        VpcId:  !Ref HelloVpc 
+  
+  #===== Route Table
+  HelloRt:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      Tags:
+        - Key: 'Name'
+          Value: !Sub
+            - 'Hello RT ${UniqueSuffix}'
+            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+      VpcId: !Ref HelloVpc
+      
+  HelloRouteIPv4:
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: '0.0.0.0/0'
+      GatewayId: !Ref HelloIgw 
+      RouteTableId: !Ref HelloRt
+    
+  HelloRtAssociate:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref HelloRt 
+      SubnetId: !Ref HelloSubnet
+      
+#   HelloVpcCidrBlock: 
+#     Type: AWS::EC2::VPCCidrBlock
+#     Properties: 
+#         AmazonProvidedIpv6CidrBlock: true
+#         VpcId: !Ref HelloVpc 
+  
+#   HelloEigw: 
+#     Type: AWS::EC2::EgressOnlyInternetGateway
+#     Properties: 
+#       VpcId:  !Ref HelloVpc 
+
+#   HelloRouteEIGW: 
+#     Type: AWS::EC2::Route
+#     Properties: 
+#       DestinationIpv6CidrBlock: ::/0
+#       EgressOnlyInternetGatewayId:  !Ref HelloEigw 
+#       RouteTableId:  !Ref HelloRt 
+        
+#   HelloEip: 
+#     Type: AWS::EC2::EIP
+
+#   HelloInstanceEipAssociate: 
+#     Type: AWS::EC2::EIPAssociation
+#     Properties: 
+#       AllocationId: !GetAtt HelloEip.AllocationId
+#       InstanceId: !Ref HelloInstance 
+    

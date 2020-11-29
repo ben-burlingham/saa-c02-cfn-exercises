@@ -25,7 +25,6 @@ Create IAM role for logging into an EC2 instance.
 
 ---
 
-
 ## Exercise 3 
 Create EC2 instance that uses the instance profile.
 
