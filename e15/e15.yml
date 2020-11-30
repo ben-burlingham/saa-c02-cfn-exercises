@@ -6,11 +6,12 @@ Mappings:
   Network:
     Settings:
       SubnetCidrBlock0: '10.16.0.0/24'
+      SubnetCidrBlock1: '10.16.1.0/24'
       VpcCidrBlock: '10.16.0.0/16'
   Application:
     Settings:
       AvailabilityZone: 'us-east-1a'
-      UniqueSuffix: 'e14'
+      UniqueSuffix: 'e15'
 
 Resources:
   #===== EC2
@@ -23,7 +24,7 @@ Resources:
       InstanceType: !FindInMap [ Instances, Settings, InstanceType ]
       SecurityGroupIds:
         - !Ref HelloSg
-      SubnetId:  !Ref HelloSubnet 
+      SubnetId:  !Ref HelloSubnetEast1a 
       Tags: 
         - Key: 'Name'
           Value: 'Hello Instance A'
@@ -37,7 +38,7 @@ Resources:
       InstanceType: !FindInMap [ Instances, Settings, InstanceType ]
       SecurityGroupIds:
         - !Ref HelloSg
-      SubnetId:  !Ref HelloSubnet 
+      SubnetId:  !Ref HelloSubnetEast1a 
       Tags: 
         - Key: 'Name'
           Value: 'Hello Instance B'
@@ -70,45 +71,56 @@ Resources:
       Roles: 
         - !Ref HelloRole
 
-  #===== Network load balancer
-  HelloNlb:
+  #===== Application load balancer
+  HelloAlb:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties: 
       Name: !Sub
-        - 'hello-nlb-${UniqueSuffix}'
+        - 'hello-alb-${UniqueSuffix}'
         - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+      SecurityGroups: 
+        - !Ref HelloSg
       Subnets:
-        - !Ref HelloSubnet
-      Type: 'network'
+        - !Ref HelloSubnetEast1a
+        - !Ref HelloSubnetEast1b
+      Type: 'application'
 
-  HelloNlbListener:
+  HelloAlbListenerForward:
     Type: AWS::ElasticLoadBalancingV2::Listener
     Properties: 
       DefaultActions: 
-        - TargetGroupArn: !Ref HelloNlbGroup
+        - TargetGroupArn: !Ref HelloAlbGroup
           Type: 'forward'
-      LoadBalancerArn: !Ref HelloNlb
+      LoadBalancerArn: !Ref HelloAlb
       Port: 80
-      Protocol: 'TCP'
+      Protocol: 'HTTP'
 
-  HelloNlbListener3000:
+  HelloAlbListenerFixed:
     Type: AWS::ElasticLoadBalancingV2::Listener
     Properties: 
       DefaultActions: 
-        - TargetGroupArn: !Ref HelloNlbGroup
-          Type: 'forward'
-      LoadBalancerArn: !Ref HelloNlb
+        - FixedResponseConfig: 
+            ContentType: 'text/html'
+            MessageBody: "<h1 style='color:firebrick'>Hello fixed response</h1>"
+            StatusCode: '200'
+          Type: 'fixed-response'
+      LoadBalancerArn: !Ref HelloAlb
       Port: 3000
-      Protocol: 'TCP'
+      Protocol: 'HTTP'
 
-  HelloNlbGroup:
+  HelloAlbGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties: 
       Name: !Sub
-        - 'hello-nlb-group-${UniqueSuffix}'
+        - 'hello-alb-group-${UniqueSuffix}'
         - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
       Port: 80
-      Protocol: 'TCP'
+      Protocol: 'HTTP'
+      TargetGroupAttributes:
+        - Key: 'stickiness.enabled'
+          Value: true
+        - Key: 'stickiness.type'
+          Value: 'lb_cookie'
       Targets: 
         - Id: !Ref HelloInstanceA
         - Id: !Ref HelloInstanceB
@@ -134,19 +146,6 @@ Resources:
       InternetGatewayId: !Ref HelloIgw 
       VpcId: !Ref HelloVpc
 
-  HelloSubnet:
-    Type: AWS::EC2::Subnet
-    Properties:
-      AvailabilityZone: !FindInMap [ Application, Settings, AvailabilityZone ]
-      CidrBlock: !FindInMap [ Network, Settings, SubnetCidrBlock0 ]
-      MapPublicIpOnLaunch: true
-      Tags:
-        - Key: 'Name'
-          Value: !Sub
-            - 'Hello subnet ${UniqueSuffix}'
-            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
-      VpcId: !Ref HelloVpc
-
   HelloSg: 
     Type: AWS::EC2::SecurityGroup
     Properties: 
@@ -158,6 +157,33 @@ Resources:
         CidrIp: '0.0.0.0/0'
         IpProtocol: -1
       VpcId: !Ref HelloVpc 
+
+  #===== Subnets
+  HelloSubnetEast1a:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: 'us-east-1a'
+      CidrBlock: !FindInMap [ Network, Settings, SubnetCidrBlock0 ]
+      MapPublicIpOnLaunch: true
+      Tags: 
+        - Key: 'Name'
+          Value: !Sub
+            - 'Hello Subnet us-east-1a ${UniqueSuffix}'
+            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+      VpcId: !Ref HelloVpc
+  
+  HelloSubnetEast1b:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: 'us-east-1b'
+      CidrBlock: !FindInMap [ Network, Settings, SubnetCidrBlock1 ]
+      MapPublicIpOnLaunch: true
+      Tags: 
+        - Key: 'Name'
+          Value: !Sub
+            - 'Hello Subnet us-east-1b ${UniqueSuffix}'
+            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+      VpcId: !Ref HelloVpc
 
   #===== Route table
   HelloRt:
@@ -177,8 +203,14 @@ Resources:
       GatewayId: !Ref HelloIgw 
       RouteTableId: !Ref HelloRt   
 
-  HelloRtAssociate:
+  HelloRtAssociateA:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
       RouteTableId: !Ref HelloRt 
-      SubnetId: !Ref HelloSubnet
+      SubnetId: !Ref HelloSubnetEast1a
+
+  HelloRtAssociateB:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref HelloRt 
+      SubnetId: !Ref HelloSubnetEast1b

@@ -153,12 +153,7 @@ Study topics:
 
 E06 REWRITE
 
-E14 NLB + ALB 
-
-
-SSL + ACM  API Gateway (websocket? FixedResponseConfig?)
-
-  stickiness (TargetGroupAttributes)
+API Gateway
 
 E16 Event bridge + lambda
 
