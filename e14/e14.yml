@@ -10,9 +10,9 @@ Mappings:
   Application:
     Settings:
       AvailabilityZone: 'us-east-1a'
-      UniqueSuffix: 'e03'
+      UniqueSuffix: 'e14'
 
-Resources: 
+Resources:
   #===== EC2
   HelloInstanceA: 
     Type: AWS::EC2::Instance
@@ -21,6 +21,8 @@ Resources:
       IamInstanceProfile: !Ref HelloInstanceProfile
       ImageId: !FindInMap [ Instances, Settings, ImageId ]
       InstanceType: !FindInMap [ Instances, Settings, InstanceType ]
+      SecurityGroupIds:
+        - !Ref HelloSg
       SubnetId:  !Ref HelloSubnet 
       Tags: 
         - Key: 'Name'
@@ -33,55 +35,12 @@ Resources:
       IamInstanceProfile: !Ref HelloInstanceProfile
       ImageId: !FindInMap [ Instances, Settings, ImageId ]
       InstanceType: !FindInMap [ Instances, Settings, InstanceType ]
+      SecurityGroupIds:
+        - !Ref HelloSg
       SubnetId:  !Ref HelloSubnet 
       Tags: 
         - Key: 'Name'
           Value: 'Hello Instance B'
-        
-  #===== EBS
-  # t2.micro instances don't support EBS-optimized or placement groups.
-  HelloEbsVolume:
-    Type: AWS::EC2::Volume
-    Properties: 
-      AvailabilityZone: !FindInMap [ Application, Settings, AvailabilityZone ]
-      Encrypted: true
-      Size: 1
-      Tags: 
-        - Key: 'Name'
-          Value: 'Hello Volume'
-  
-  HelloVolumeAttach:
-    Type: AWS::EC2::VolumeAttachment
-    Properties:
-      Device: /dev/sdh
-      InstanceId: !Ref HelloInstanceA
-      VolumeId: !Ref HelloEbsVolume
-
-  #===== EFS
-  HelloEfs:
-    Type: AWS::EFS::FileSystem
-    Properties:
-      Encrypted: true 
-
-  HelloEfsMountTarget:
-    Type: AWS::EFS::MountTarget
-    Properties: 
-      FileSystemId: !Ref HelloEfs
-      SecurityGroups:
-        - !Ref HelloSgEfs
-      SubnetId: !Ref HelloSubnet
-
-  HelloSgEfs: 
-    Type: AWS::EC2::SecurityGroup
-    Properties: 
-      GroupDescription: 'Open to IPv4 traffic'
-      GroupName: !Sub
-        - 'Hello SG EFS ${UniqueSuffix}'
-        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
-      SecurityGroupIngress: 
-        CidrIp: '0.0.0.0/0'
-        IpProtocol: -1
-      VpcId: !Ref HelloVpc 
 
   #===== IAM
   HelloRole:
@@ -110,6 +69,50 @@ Resources:
         - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
       Roles: 
         - !Ref HelloRole
+
+  #===== Network load balancer
+  HelloNlb:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties: 
+      Name: !Sub
+        - 'hello-nlb-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+      Subnets:
+        - !Ref HelloSubnet
+      Type: 'network'
+
+  HelloNlbListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties: 
+      DefaultActions: 
+          - TargetGroupArn: !Ref HelloNlbGroup
+            Type: 'forward'
+      LoadBalancerArn: !Ref HelloNlb
+      Port: 80
+      Protocol: 'TCP'
+
+  HelloNlbListener3000:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties: 
+      DefaultActions: 
+          - TargetGroupArn: !Ref HelloNlbGroup
+            Type: 'forward'
+      LoadBalancerArn: !Ref HelloNlb
+      Port: 3000
+      Protocol: 'TCP'
+
+  HelloNlbGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties: 
+      Name: !Sub
+        - 'hello-nlb-group-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+      Port: 80
+      Protocol: 'TCP'
+      Targets: 
+        - Id: !Ref HelloInstanceA
+        - Id: !Ref HelloInstanceB
+      VpcId: !Ref HelloVpc
 
   #====== Network
   HelloVpc:
@@ -144,6 +147,19 @@ Resources:
             - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
       VpcId: !Ref HelloVpc
 
+  HelloSg: 
+    Type: AWS::EC2::SecurityGroup
+    Properties: 
+      GroupDescription: 'Open to IPv4 traffic'
+      GroupName: !Sub
+        - 'Hello SG ${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+      SecurityGroupIngress: 
+        CidrIp: '0.0.0.0/0'
+        IpProtocol: -1
+      VpcId: !Ref HelloVpc 
+
+  #===== Route table
   HelloRt:
     Type: AWS::EC2::RouteTable
     Properties:

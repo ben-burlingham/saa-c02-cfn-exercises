@@ -5,6 +5,8 @@
 
 Note: Creating RDS instances is time consuming; it can take about 15-30 minutes per instance.
 
+Note: These exercises can create incidental RDS snapshots. *Be sure to destroy the snapshots* to avoid unexpected fees.
+
 ## Exercise 1
 Create a VPC, a security group, and a route table. Add two subnets, each in a different AZ.
 - Refer to previous evolution(s) if necessary. 
@@ -35,11 +37,11 @@ Update the instance to support multi-AZ.
 ---
 
 ## Exercise 4
+Create a new RDS instance. Point the original instance to use the new one as a read replica.
 
-- Create a new RDS instance. Point the original instance to use the new one as a read replica.
-  verify RR: promote
-https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_ReadRepl.html#USER_ReadRepl.Create
-https://medium.com/awesome-cloud/aws-difference-between-multi-az-and-read-replicas-in-amazon-rds-60fe848ef53a
+- Gotcha: User, password, backup retention, and subnet groups are not permitted.
+- [Creating a Read Replica](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_ReadRepl.html#USER_ReadRepl.Create)
+- [Read Replicas vs Multi-AZ](https://medium.com/awesome-cloud/aws-difference-between-multi-az-and-read-replicas-in-amazon-rds-60fe848ef53a)
 
 **Verify:** 
 - Promote the `Replica` to an `Instance` role.

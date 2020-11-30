@@ -151,23 +151,25 @@ Study topics:
     Goal: Create Cloudtrail that delivers data to encrypted bucket.
     Verify: Observe Cloudtrail logs in encrypted bucket.
 
-
 E06 REWRITE
 
-E12 ECS
+E14 NLB + ALB 
 
-E14 NLB + SSL (Websocket?)
 
-E15 ALB + API Gateway (S3 static host?)
+SSL + ACM  API Gateway (websocket? FixedResponseConfig?)
+
+  stickiness (TargetGroupAttributes)
 
 E16 Event bridge + lambda
 
-==================== YYY
+E17 Cloudfront + static hosting
+
+AWS Step functions
+SQS
+
+==================== NEEDS ADDRESSING
 Event bridge
 R53 "Hosted Zones" and "Health Check"
-S3 static hosting
 IOPS
 "Spot" instances (https://docs.aws.amazon.com/autoscaling/ec2/userguide/capacity-rebalance.html, https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-as-launchconfig.html#cfn-as-launchconfig-spotprice)
-
-==================== ZZZ
-ECS 
+E12 ECS

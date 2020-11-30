@@ -52,7 +52,7 @@ Resources:
           Effect: 'Allow'
           Resource: !Sub
             - arn:aws:s3:::${TargetBucketName}/*
-            - TargetBucketName:  !Ref HelloBucketSource
+            - TargetBucketName: !Ref HelloBucketSource
 
   #===== IAM
   HelloRole: 

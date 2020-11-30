@@ -1,6 +1,8 @@
 Mappings:
   Network:
     Settings:
+      SubnetCidrBlock0: '10.16.0.0/24'
+      SubnetCidrBlock1: '10.16.1.0/24'
       VpcCidrBlock: '10.16.0.0/16'
   Application:
     Settings:
@@ -82,7 +84,7 @@ Resources:
     Type: AWS::EC2::Subnet
     Properties:
       AvailabilityZone: 'us-east-1a'
-      CidrBlock: '10.16.0.0/24'
+      CidrBlock: !FindInMap [ Network, Settings, SubnetCidrBlock0 ]
       MapPublicIpOnLaunch: true
       Tags: 
         - Key: 'Name'
@@ -95,7 +97,7 @@ Resources:
     Type: AWS::EC2::Subnet
     Properties:
       AvailabilityZone: 'us-east-1b'
-      CidrBlock: '10.16.1.0/24'
+      CidrBlock: !FindInMap [ Network, Settings, SubnetCidrBlock1 ]
       MapPublicIpOnLaunch: true
       Tags: 
         - Key: 'Name'
