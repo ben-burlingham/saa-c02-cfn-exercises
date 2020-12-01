@@ -153,17 +153,18 @@ Study topics:
 
 E06 REWRITE
 
-API Gateway
+E16 API GATEWAY TO LAMBDA
 
-E16 Event bridge + lambda
+SNS + SQS
+
+E16 Event bridge
 
 E17 Cloudfront + static hosting
 
 AWS Step functions
-SQS
+
 
 ==================== NEEDS ADDRESSING
-Event bridge
 R53 "Hosted Zones" and "Health Check"
 IOPS
 "Spot" instances (https://docs.aws.amazon.com/autoscaling/ec2/userguide/capacity-rebalance.html, https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-as-launchconfig.html#cfn-as-launchconfig-spotprice)

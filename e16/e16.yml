@@ -1,0 +1,130 @@
+Mappings:
+  Application:
+    Settings:
+      UniqueSuffix: 'e16'
+
+Resources:
+  #===== API infrastructure
+  HelloRestApi:
+    Type: AWS::ApiGateway::RestApi
+    Properties: 
+      Name: !Sub
+        - 'hello-apigw-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+
+  HelloDeployment:
+    DependsOn:
+      - 'HelloMethodMockGET'
+      - 'HelloMethodMessagePOST'
+      - 'HelloLambda'
+    Type: AWS::ApiGateway::Deployment
+    Properties: 
+      RestApiId: !Ref HelloRestApi
+      StageName: !Sub
+        - 'hello-stage-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+
+  #===== API resources
+  HelloResourceMock:
+    Type: AWS::ApiGateway::Resource
+    Properties: 
+      ParentId: !Sub ${HelloRestApi.RootResourceId}
+      PathPart: 'mock'
+      RestApiId: !Ref HelloRestApi
+
+  HelloResourceMessage:
+    Type: AWS::ApiGateway::Resource
+    Properties: 
+      ParentId: !Sub ${HelloRestApi.RootResourceId}
+      PathPart: 'message'
+      RestApiId: !Ref HelloRestApi
+        
+  #===== API methods
+  HelloMethodMockGET:
+    Type: AWS::ApiGateway::Method
+    Properties: 
+      ApiKeyRequired: false
+      AuthorizationType: 'NONE'
+      HttpMethod: 'GET'
+      Integration: 
+        IntegrationResponses: 
+          - StatusCode: '200'
+        RequestTemplates:
+          application/json: | 
+            { statusCode: 200 }
+        Type: 'MOCK'
+      MethodResponses: 
+        - ResponseModels: 
+            application/json: 'Empty'
+          StatusCode: '200'
+      ResourceId: !Ref HelloResourceMock
+      RestApiId: !Ref HelloRestApi
+
+  HelloMethodMessagePOST:
+    Type: AWS::ApiGateway::Method
+    Properties: 
+      ApiKeyRequired: false
+      AuthorizationType: 'NONE'
+      HttpMethod: 'POST'
+      Integration: 
+        IntegrationHttpMethod: 'POST'
+        IntegrationResponses: 
+          - StatusCode: '200'
+        Type: 'AWS'
+        Uri: !Sub
+          - arn:aws:apigateway:${AWS::Region}:lambda:path//2015-03-31/functions/${HelloLambda.Arn}/invocations
+          - Region: 'us-east-1'
+      MethodResponses: 
+        - ResponseModels: 
+            application/json: 'Empty'
+          StatusCode: '200'
+      ResourceId: !Ref HelloResourceMessage
+      RestApiId: !Ref HelloRestApi
+
+  #===== Lambda
+  HelloLambda:
+    Type: AWS::Lambda::Function
+    Properties: 
+      Code: 
+        ZipFile: |
+          exports.handler = async (evt, ctx) => { 
+            console.log("Hello Lambda"); 
+            console.log("EVENT: \n" + JSON.stringify(evt, null, 2))
+            console.log("CONTEXT: \n" + JSON.stringify(ctx, null, 2))
+            return "Hello Lambda" 
+          }
+      FunctionName: !Sub
+        - 'hello-lambda-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+      Handler: 'index.handler'
+      Role: !GetAtt HelloRole.Arn
+      Runtime: 'nodejs12.x'
+
+  HelloLambdaPermission:
+    DependsOn:
+      - HelloRestApi
+      - HelloLambda
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref HelloLambda
+      Principal: apigateway.amazonaws.com
+
+  #===== IAM
+  HelloRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          Effect: 'Allow'
+          Principal: 
+            Service: 
+              - 'lambda.amazonaws.com'
+          Action: 
+            - 'sts:AssumeRole'
+      Description: 'Hello Role'
+      ManagedPolicyArns: 
+        - 'arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
+      RoleName: !Sub
+        - 'hello-role-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]

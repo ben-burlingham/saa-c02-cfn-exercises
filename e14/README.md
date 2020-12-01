@@ -2,6 +2,7 @@
 - HTTPD
 - Network Load Balancers
 - 'Forward' load balancing action
+- Multiple load balancer listeners
 
 ## Exercise 1
 Create two EC2 instances, A and B, on a subnet.
