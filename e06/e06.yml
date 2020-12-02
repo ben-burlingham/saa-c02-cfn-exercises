@@ -1,8 +1,3 @@
-Parameters: 
-  KeyPairName: 
-    Type: String
-    Description: Name of key pair credential
-
 Mappings:
   Instances:
     Settings:
@@ -10,7 +5,6 @@ Mappings:
       InstanceType: 't2.micro'
   Network:
     Settings:
-      SubnetCidrBlock0: '10.16.0.0/24'
       VpcCidrBlock: '10.16.0.0/16'
   Application:
     Settings:
@@ -23,17 +17,26 @@ Resources:
     Type: AWS::EC2::Instance
     Properties: 
       AvailabilityZone: !FindInMap [ Application, Settings, AvailabilityZone ]
+      IamInstanceProfile: !Ref HelloInstanceProfile
       ImageId: !FindInMap [ Instances, Settings, ImageId ]
       InstanceType: !FindInMap [ Instances, Settings, InstanceType ]
-      KeyName: !Ref KeyPairName
       SecurityGroupIds: 
         - !Ref HelloSg
-      SubnetId:  !Ref HelloSubnet 
+      SubnetId: !Ref HelloSubnet 
       Tags: 
         - Key: 'Name' 
           Value: !Sub
             - 'Hello Instance ${UniqueSuffix}'
             - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+
+  HelloEip: 
+    Type: AWS::EC2::EIP
+
+  HelloEipAssociate: 
+    Type: AWS::EC2::EIPAssociation
+    Properties: 
+      AllocationId: !GetAtt HelloEip.AllocationId
+      InstanceId: !Ref HelloInstance 
 
   #===== Network
   HelloVpc:
@@ -76,7 +79,7 @@ Resources:
             Value: !Sub
               - 'Hello subnet ${UniqueSuffix}'
               - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
-        VpcId:  !Ref HelloVpc 
+        VpcId: !Ref HelloVpc 
   
   HelloSg: 
     Type: AWS::EC2::SecurityGroup
@@ -109,6 +112,14 @@ Resources:
       DestinationCidrBlock: '0.0.0.0/0'
       GatewayId: !Ref HelloIgw 
       RouteTableId: !Ref HelloRt
+
+  # Route tables have trouble `update`-ing for some reason; may have to `create` from scratch for this change.
+  # HelloRouteIPv6: 
+  #   Type: AWS::EC2::Route
+  #   Properties: 
+  #     DestinationIpv6CidrBlock: ::/0
+  #     GatewayId: !Ref HelloIgw 
+  #     RouteTableId: !Ref HelloRt 
     
   HelloRtAssociate:
     Type: AWS::EC2::SubnetRouteTableAssociation
@@ -119,21 +130,39 @@ Resources:
   HelloEigw: 
     Type: AWS::EC2::EgressOnlyInternetGateway
     Properties: 
-      VpcId:  !Ref HelloVpc 
+      VpcId: !Ref HelloVpc 
 
   HelloRouteEIGW: 
     Type: AWS::EC2::Route
     Properties: 
       DestinationIpv6CidrBlock: ::/0
-      EgressOnlyInternetGatewayId:  !Ref HelloEigw 
-      RouteTableId:  !Ref HelloRt 
-        
-  HelloEip: 
-    Type: AWS::EC2::EIP
-
-  HelloInstanceEipAssociate: 
-    Type: AWS::EC2::EIPAssociation
-    Properties: 
-      AllocationId: !GetAtt HelloEip.AllocationId
-      InstanceId: !Ref HelloInstance 
+      EgressOnlyInternetGatewayId: !Ref HelloEigw 
+      RouteTableId: !Ref HelloRt 
     
+  #===== IAM
+  HelloRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          Effect: 'Allow'
+          Principal: 
+            Service: 
+              - 'ec2.amazonaws.com'
+          Action: 
+            - 'sts:AssumeRole'
+      Description: 'Hello Role'
+      ManagedPolicyArns: 
+        - 'arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore'
+      RoleName: !Sub
+        - 'hello-role-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+
+  HelloInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties: 
+      InstanceProfileName: !Sub
+        - 'hello-instance-profile-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+      Roles: 
+        - !Ref HelloRole

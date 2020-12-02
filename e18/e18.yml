@@ -6,7 +6,7 @@ Mappings:
   Application:
     Settings:
       AvailabilityZone: 'us-east-1a'
-      UniqueSuffix: 'e19'
+      UniqueSuffix: 'e18'
 
 Resources:
   #===== S3 buckets

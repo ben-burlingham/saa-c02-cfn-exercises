@@ -151,16 +151,18 @@ Study topics:
     Goal: Create Cloudtrail that delivers data to encrypted bucket.
     Verify: Observe Cloudtrail logs in encrypted bucket.
 
-E06 REWRITE
 
-E18 AWS Step functions
-Cloudfront + static hosting
-Event bridge
+E12 ECS
+E18
 
+Cloudfront + origin access identity + static hosting + R53 "Hosted Zones" and "Health Check"
+VPC ENDPOINTS + VPC PEERING
+Kinesis
 
-
-==================== NEEDS ADDRESSING
-R53 "Hosted Zones" and "Health Check"
+==================== BACKLOG
+Global accelerator
+Lambda@Edge
 IOPS
 "Spot" instances (https://docs.aws.amazon.com/autoscaling/ec2/userguide/capacity-rebalance.html, https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-as-launchconfig.html#cfn-as-launchconfig-spotprice)
-E12 ECS
+Step functions
+Event bridge

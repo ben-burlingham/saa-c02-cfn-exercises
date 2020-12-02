@@ -14,5 +14,4 @@ Create two S3 buckets to statically host two separate HTML pages.
 
 ## Exercise 2
 
-
-
+https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-cloudfront-cloudfrontoriginaccessidentity.html
