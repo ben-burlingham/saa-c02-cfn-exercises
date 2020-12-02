@@ -104,11 +104,11 @@ Resources:
     DependsOn:
       - HelloRestApi
       - HelloLambda
-    Type: "AWS::Lambda::Permission"
+    Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
       FunctionName: !Ref HelloLambda
-      Principal: apigateway.amazonaws.com
+      Principal: 'apigateway.amazonaws.com'
 
   #===== IAM
   HelloRole:

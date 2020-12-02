@@ -1,55 +1,114 @@
 Mappings:
-  Network:
-    Settings:
-      SubnetCidrBlock0: '10.16.0.0/24'
-      VpcCidrBlock: '10.16.0.0/16'
   Application:
     Settings:
-      AvailabilityZone: 'us-east-1a'
-      UniqueSuffix: 'e14'
+      UniqueSuffix: 'e17'
 
 Resources:
-  #===== S3 buckets
-  HelloBucketA: 
-    Type: AWS::S3::Bucket
+  #===== SQS
+  HelloQueue:
+    Type: AWS::SQS::Queue
     Properties: 
-      BucketName: 'hello-bucket-burlingham-a'
-      WebsiteConfiguration:  
-        ErrorDocument: 'hello1.html'
-        IndexDocument: 'hello1.html'
+      MessageRetentionPeriod: 60
+      QueueName: !Sub
+        - 'hello-role-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
 
-  HelloBucketB: 
-    Type: AWS::S3::Bucket
+  HelloQueuePolicySNS:
+    Type: AWS::SQS::QueuePolicy
     Properties: 
-      BucketName: 'hello-bucket-burlingham-b'
-      WebsiteConfiguration:  
-        ErrorDocument: 'hello2.html'
-        IndexDocument: 'hello2.html'
+      PolicyDocument:
+        Statement:
+          Action: 
+            - "SQS:SendMessage" 
+            - "SQS:ReceiveMessage"
+          Effect: "Allow"
+          Resource: !GetAtt HelloQueue.Arn
+          Principal:  
+            Service: 
+              - 'sns.amazonaws.com'
+      Queues: 
+        - !Ref HelloQueue
 
-  #===== Bucket policy
-  HelloBucketPolicyA: 
-    Type: AWS::S3::BucketPolicy
+  #===== SNS
+  HelloTopic:
+    Type: AWS::SNS::Topic
     Properties: 
-      Bucket:  !Ref HelloBucketA
-      PolicyDocument: 
-        Statement: 
-          Principal: '*'
-          Action: '*'
+      Subscription: 
+        - Endpoint: !GetAtt HelloQueue.Arn
+          Protocol: 'sqs'
+        - Endpoint: !GetAtt HelloLambdaSNS.Arn
+          Protocol: 'lambda'
+      TopicName: !Sub
+        - 'hello-topic-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+
+  #===== Lambdas
+  HelloLambdaSQS:
+    Type: AWS::Lambda::Function
+    Properties: 
+      Code: 
+        ZipFile: |
+          exports.handler = (event, _) => { 
+            console.log("SQS EVENT", event);
+          }
+      FunctionName: !Sub
+        - 'hello-lambda-sqs-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+      Handler: 'index.handler'
+      Role: !GetAtt HelloRole.Arn
+      Runtime: 'nodejs12.x'
+
+  HelloLambdaSNS:
+    Type: AWS::Lambda::Function
+    Properties: 
+      Code: 
+        ZipFile: |
+          exports.handler = (event, _) => { 
+            console.log("SNS EVENT", event);
+            console.log("SNS EVENT RECORD COUNT", event.Records.length);
+            event.Records.map(console.log);
+          }
+      FunctionName: !Sub
+        - 'hello-lambda-sns-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+      Handler: 'index.handler'
+      Role: !GetAtt HelloRole.Arn
+      Runtime: 'nodejs12.x'
+
+  HelloEventSourceSQS:
+    Type: AWS::Lambda::EventSourceMapping
+    Properties: 
+      BatchSize: 2
+      Enabled: true
+      EventSourceArn: !GetAtt HelloQueue.Arn
+      FunctionName: !Ref HelloLambdaSQS
+
+  HelloLambdaPermissionSNS:
+    DependsOn:
+      - HelloLambdaSNS
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref HelloLambdaSNS
+      Principal: 'sns.amazonaws.com'
+
+  #===== IAM
+  HelloRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
           Effect: 'Allow'
-          Resource: !Sub
-            - arn:aws:s3:::${TargetBucketName}/*
-            - TargetBucketName: !Ref HelloBucketA
-  
-  HelloBucketPolicyB: 
-    Type: AWS::S3::BucketPolicy
-    Properties: 
-      Bucket:  !Ref HelloBucketB
-      PolicyDocument: 
-        Statement: 
-          Principal: '*'
-          Action: '*'
-          Effect: 'Allow'
-          Resource: !Sub
-            - arn:aws:s3:::${TargetBucketName}/*
-            - TargetBucketName: !Ref HelloBucketB
-
+          Principal: 
+            Service: 
+              - 'lambda.amazonaws.com'
+          Action: 
+            - 'sts:AssumeRole'
+      Description: 'Hello Role'
+      ManagedPolicyArns: 
+        - 'arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
+        - 'arn:aws:iam::aws:policy/AmazonSQSFullAccess'
+        - 'arn:aws:iam::aws:policy/AmazonSNSFullAccess'
+      RoleName: !Sub
+        - 'hello-role-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]

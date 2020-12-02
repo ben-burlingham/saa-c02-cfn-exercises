@@ -4,7 +4,7 @@ Cloud Lab
 Goal: Dependency-free implementations. Pattern reuse in further evolutions. Intentionally vague to encourage research.
 complete in serial
 
-Hello Automation
+Part of the "Hello Cloudformation" series (tags? markup?)
 
 Prereqs:  `iamadmin-general` account
 
@@ -153,15 +153,10 @@ Study topics:
 
 E06 REWRITE
 
-E16 API GATEWAY TO LAMBDA
+E18 AWS Step functions
+Cloudfront + static hosting
+Event bridge
 
-SNS + SQS
-
-E16 Event bridge
-
-E17 Cloudfront + static hosting
-
-AWS Step functions
 
 
 ==================== NEEDS ADDRESSING

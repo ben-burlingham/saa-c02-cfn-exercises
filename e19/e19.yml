@@ -1,0 +1,55 @@
+Mappings:
+  Network:
+    Settings:
+      SubnetCidrBlock0: '10.16.0.0/24'
+      VpcCidrBlock: '10.16.0.0/16'
+  Application:
+    Settings:
+      AvailabilityZone: 'us-east-1a'
+      UniqueSuffix: 'e19'
+
+Resources:
+  #===== S3 buckets
+  HelloBucketA: 
+    Type: AWS::S3::Bucket
+    Properties: 
+      BucketName: 'hello-bucket-burlingham-a'
+      WebsiteConfiguration:  
+        ErrorDocument: 'hello1.html'
+        IndexDocument: 'hello1.html'
+
+  HelloBucketB: 
+    Type: AWS::S3::Bucket
+    Properties: 
+      BucketName: 'hello-bucket-burlingham-b'
+      WebsiteConfiguration:  
+        ErrorDocument: 'hello2.html'
+        IndexDocument: 'hello2.html'
+
+  #===== Bucket policy
+  HelloBucketPolicyA: 
+    Type: AWS::S3::BucketPolicy
+    Properties: 
+      Bucket:  !Ref HelloBucketA
+      PolicyDocument: 
+        Statement: 
+          Principal: '*'
+          Action: '*'
+          Effect: 'Allow'
+          Resource: !Sub
+            - arn:aws:s3:::${TargetBucketName}/*
+            - TargetBucketName: !Ref HelloBucketA
+  
+  HelloBucketPolicyB: 
+    Type: AWS::S3::BucketPolicy
+    Properties: 
+      Bucket:  !Ref HelloBucketB
+      PolicyDocument: 
+        Statement: 
+          Principal: '*'
+          Action: '*'
+          Effect: 'Allow'
+          Resource: !Sub
+            - arn:aws:s3:::${TargetBucketName}/*
+            - TargetBucketName: !Ref HelloBucketB
+
