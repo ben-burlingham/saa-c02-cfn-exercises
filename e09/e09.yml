@@ -1,15 +1,15 @@
 Parameters: 
-  UniqueSuffix: 
+  BucketSuffix: 
     AllowedPattern: ^[\d\w]{5,}$
     Type: String
-    Description: Suffixed identifier to provide uniqueness on all S3 buckets
+    Description: Identifier to provide uniqueness on all S3 buckets
 
 Resources: 
   #===== S3
   HelloBucketEncrypted: 
     Type: AWS::S3::Bucket
     Properties: 
-      BucketName: !Sub 'hello-bucket-encrypted-${UniqueSuffix}'
+      BucketName: !Sub 'hello-bucket-encrypted-${BucketSuffix}'
       BucketEncryption:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
@@ -19,7 +19,7 @@ Resources:
   HelloBucketUnencrypted: 
     Type: AWS::S3::Bucket
     Properties: 
-      BucketName: !Sub 'hello-bucket-unencrypted-${UniqueSuffix}'
+      BucketName: !Sub 'hello-bucket-unencrypted-${BucketSuffix}'
   
   HelloBucketUnencryptedPolicy: 
     Type: AWS::S3::BucketPolicy

@@ -5,7 +5,7 @@
 - S3 bucket replication
 
 ### Additional command line parameter: 
-```--parameters ParameterKey=UniqueSuffix,ParameterValue=foo```
+```--parameters ParameterKey=BucketSuffix,ParameterValue=foo```
 
 ---
 

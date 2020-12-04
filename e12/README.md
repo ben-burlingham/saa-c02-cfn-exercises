@@ -6,15 +6,26 @@ ALB
 
 
 ## Exercise 1
-Create ECR with httpd official image.
+Create ECR with the `httpd` official image.
 
-## Exercise 2 
+PUSHING DOCKER IMAGE: MAY HAVE TO ADD `--profile` IF AWS FAILING
+
+## Exercise 2
+Create an autoscaling group
+- Refer to previous evolution(s) if necessary. 
+
+aws cloudformation update-stack --profile iamadmin-general --capabilities CAPABILITY_NAMED_IAM --template-body file://e12/e12.yml --stack-name bb12
+
+
+- [CapacityProvider](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ecs-capacityprovider.html)
+
+## Exercise 
 Create cluster in EC2 mode with uniqueness on HTTPD response
 
-## Exercise 3
+## Exercise 
 Put ALB in front of cluster
 
-
+- [Task vs Service](https://stackoverflow.com/questions/42960678/)
 
 ## Exercise 4  
 ECS with scaling policy monitoring requests? 

@@ -79,41 +79,40 @@ Study topics:
   v4 VPC, IGW, NGW + EIP, public + private subnets, IGW RT, NWG RT, public EC2 + SG, private EC2 + SG
     Goal: ping 1.1.1.1 from private
 
-    
 ================= E7: Flow Logs
 
-  MAPPINGS FOR COMMON VALUES
+MAPPINGS FOR COMMON VALUES
 
-  v1 VPC, subnet, IGW, RT
-    Goal: Create network components.
+v1 VPC, subnet, IGW, RT
+  Goal: Create network components.
 
-  v2 VPC, subnet, IGW, RT, IAM, EC2
-    Goal: Connect to EC2 instance.
-  
-  v3 VPC, subnet, IGW, RT, IAM, EC2, VPC flow log, subnet flow log
-    Goal: View Flow Logs on VPC and subnet
-    https://docs.aws.amazon.com/vpc/latest/userguide/flow-logs.html
+v2 VPC, subnet, IGW, RT, IAM, EC2
+  Goal: Connect to EC2 instance.
 
-  v4 VPC, subnet, IGW, RT, IAM, EC2, VPC flow log, subnet flow log, ENI, ENI flow log
-    Goal: View Flow Logs on Network Interface
-    https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-network-interface.html
-    https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-network-interface-attachment.html
+v3 VPC, subnet, IGW, RT, IAM, EC2, VPC flow log, subnet flow log
+  Goal: View Flow Logs on VPC and subnet
+  https://docs.aws.amazon.com/vpc/latest/userguide/flow-logs.html
 
+v4 VPC, subnet, IGW, RT, IAM, EC2, VPC flow log, subnet flow log, ENI, ENI flow log
+  Goal: View Flow Logs on Network Interface
+  https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-network-interface.html
+  https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-network-interface-attachment.html
 
 E08 MAPPINGS
 E09 ADD KMS ALIAS
 E12 ECS
 E18 R53 (DEPENDENT ON DOMAIN)
 E19 CFN (DEPENDENT ON DOMAIN)
+E21 
+  
 
-VPC ENDPOINTS + VPC PEERING
 Kinesis
 Step functions
 Event bridge
-Origin Access Identity
 
 ==================== BACKLOG
 Global accelerator
 Lambda@Edge
 IOPS
 "Spot" instances (https://docs.aws.amazon.com/autoscaling/ec2/userguide/capacity-rebalance.html, )
+rename with numbers but more specific topic names?

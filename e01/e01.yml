@@ -1,8 +1,8 @@
 Parameters: 
-  UniqueSuffix: 
+  BucketSuffix: 
     AllowedPattern: ^[\d\w]{5,}$
     Type: String
-    Description: Suffixed identifier to provide uniqueness on all S3 buckets
+    Description: Identifier to provide uniqueness on all S3 buckets
 
 Resources: 
   #===== Bucket creation
@@ -16,7 +16,7 @@ Resources:
               SSEAlgorithm: 'AES256'
       BucketName: !Sub 
         - 'hello-source-${Suffix}'
-        - Suffix: !Ref UniqueSuffix
+        - Suffix: !Ref BucketSuffix
       ReplicationConfiguration: 
         Role: !GetAtt HelloRole.Arn
         Rules: 
@@ -36,7 +36,7 @@ Resources:
               SSEAlgorithm: 'AES256'
       BucketName: !Sub
         - 'hello-destination-${Suffix}'
-        - Suffix: !Ref UniqueSuffix 
+        - Suffix: !Ref BucketSuffix 
       VersioningConfiguration:  
         Status: Enabled 
 
@@ -69,4 +69,4 @@ Resources:
         - 'arn:aws:iam::aws:policy/AdministratorAccess'
       RoleName: !Sub
         - 'hello-role-${Suffix}'
-        - Suffix: !Ref UniqueSuffix 
+        - Suffix: !Ref BucketSuffix 

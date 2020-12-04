@@ -1,3 +1,9 @@
+Parameters: 
+  BucketSuffix: 
+    AllowedPattern: ^[\d\w]{5,}$
+    Type: String
+    Description: Suffixed identifier to provide uniqueness on all S3 buckets
+
 Mappings:
   Instances:
     Settings:
@@ -5,106 +11,81 @@ Mappings:
       InstanceType: 't2.micro'
   Network:
     Settings:
-      SubnetCidrBlockA: '10.16.0.0/24'
-      SubnetCidrBlockB: '10.16.128.0/24'
-      VpcCidrBlockA: '10.16.0.0/17'
-      VpcCidrBlockB: '10.16.128.0/17'
+      SubnetCidrBlockPublic: '10.16.0.0/24'
+      SubnetCidrBlockPrivate: '10.16.1.0/24'
+      VpcCidrBlock: '10.16.0.0/16'
   Application:
     Settings:
-      AvailabilityZoneA: 'us-east-1a'
-      AvailabilityZoneB: 'us-west-1a'
+      AvailabilityZone: 'us-east-1a'
       UniqueSuffix: 'e20'
 
 Resources:
   #===== EC2
-  HelloInstanceA: 
+  HelloInstancePublic: 
     Type: AWS::EC2::Instance
     Properties: 
-      AvailabilityZone: !FindInMap [ Application, Settings, AvailabilityZoneA ]
+      AvailabilityZone: !FindInMap [ Application, Settings, AvailabilityZone ]
       IamInstanceProfile: !Ref HelloInstanceProfile
       ImageId: !FindInMap [ Instances, Settings, ImageId ]
       InstanceType: !FindInMap [ Instances, Settings, InstanceType ]
+      KeyName: 'IAMADMIN_GENERAL'
       SecurityGroupIds:
         - !Ref HelloSg
-      SubnetId: !Ref HelloSubnetA
+      SubnetId: !Ref HelloSubnetPublic
       Tags: 
         - Key: 'Name'
           Value: !Sub
-            - 'Hello Instance A ${UniqueSuffix}'
+            - 'Hello Instance Public ${UniqueSuffix}'
             - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
   
-  # HelloInstanceB: 
-  #   Type: AWS::EC2::Instance
-  #   Properties: 
-  #     AvailabilityZone: !FindInMap [ Application, Settings, AvailabilityZoneB ]
-  #     IamInstanceProfile: !Ref HelloInstanceProfile
-  #     ImageId: !FindInMap [ Instances, Settings, ImageId ]
-  #     InstanceType: !FindInMap [ Instances, Settings, InstanceType ]
-  #     SecurityGroupIds:
-  #       - !Ref HelloSg
-  #     SubnetId: !Ref HelloSubnetB
-  #     Tags: 
-  #       - Key: 'Name'
-  #         Value: !Sub
-  #           - 'Hello Instance B ${UniqueSuffix}'
-  #           - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+  HelloInstancePrivate: 
+    Type: AWS::EC2::Instance
+    Properties: 
+      AvailabilityZone: !FindInMap [ Application, Settings, AvailabilityZone ]
+      IamInstanceProfile: !Ref HelloInstanceProfile
+      ImageId: !FindInMap [ Instances, Settings, ImageId ]
+      InstanceType: !FindInMap [ Instances, Settings, InstanceType ]
+      KeyName: 'IAMADMIN_GENERAL'
+      SecurityGroupIds:
+        - !Ref HelloSg
+      SubnetId: !Ref HelloSubnetPrivate
+      Tags: 
+        - Key: 'Name'
+          Value: !Sub
+            - 'Hello Instance Private ${UniqueSuffix}'
+            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+  
 
   #===== S3
-  # HelloBucket: 
-  #   Type: AWS::S3::Bucket
-  #   Properties: 
+  HelloBucket: 
+    Type: AWS::S3::Bucket
+    Properties: 
+      BucketName: !Sub 
+        - 'hello-bucket-${Suffix}'
+        - Suffix: !Ref BucketSuffix
 
-  #     ###### FIX THIS
-  #     BucketName: 'hello-bucket-burlingham'
-  #     ######
-
-  # HelloBucketPolicy: 
-  #   Type: AWS::S3::BucketPolicy
-  #   Properties: 
-  #     Bucket: !Ref HelloBucket
-  #     PolicyDocument: 
-  #       Statement: 
-  #         Principal: '*'
-  #         Action: '*'
-  #         Effect: 'Allow'
-  #         Resource: !Sub
-  #           - arn:aws:s3:::${TargetBucketName}/*
-  #           - TargetBucketName: !Ref HelloBucket
-
-  # HelloS3Endpoint:
-  #   Type: AWS::EC2::VPCEndpoint
-  #   Properties: 
-  #     PolicyDocument: Json
-  #     PrivateDnsEnabled: Boolean
-  #     RouteTableIds: 
-  #       - String
-  #     SecurityGroupIds: 
-  #       - String
-  #     ServiceName: String
-  #     SubnetIds: 
-  #       - String
-  #     VpcEndpointType: String
-  #     VpcId: String
+  HelloBucketPolicy: 
+    Type: AWS::S3::BucketPolicy
+    Properties: 
+      Bucket: !Ref HelloBucket
+      PolicyDocument: 
+        Statement: 
+          Principal: '*'
+          Action: '*'
+          Effect: 'Allow'
+          Resource: !Sub
+            - arn:aws:s3:::${TargetBucketName}/*
+            - TargetBucketName: !Ref HelloBucket
 
   #====== VPC
-  HelloVpcA:
+  HelloVpc:
     Type: AWS::EC2::VPC
     Properties:
-      CidrBlock: !FindInMap [ Network, Settings, VpcCidrBlockA ]
+      CidrBlock: !FindInMap [ Network, Settings, VpcCidrBlock ]
       Tags:
         - Key: 'Name'
           Value: !Sub
-            - 'Hello VPC A ${UniqueSuffix}'
-            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
-  
-  HelloVpcB:
-    Type: AWS::EC2::VPC
-    Properties:
-      CidrBlock: !FindInMap [ Network, Settings, VpcCidrBlockB ]
-      Tags:
-        - Key: 'Name'
-          Value: !Sub
-            - 'Hello VPC B ${UniqueSuffix}'
+            - 'Hello VPC ${UniqueSuffix}'
             - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
   
   HelloIgw:
@@ -114,33 +95,53 @@ Resources:
     Type: AWS::EC2::VPCGatewayAttachment
     Properties:
       InternetGatewayId: !Ref HelloIgw 
-      VpcId: !Ref HelloVpcA
+      VpcId: !Ref HelloVpc
+
+  HelloInterfaceEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties: 
+      SecurityGroupIds: 
+        - !Ref HelloSg
+      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.ec2'
+      SubnetIds: 
+        - !Ref HelloSubnetPrivate
+      VpcEndpointType: 'Interface'
+      VpcId: !Ref HelloVpc
+
+  HelloGatewayEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties: 
+      RouteTableIds: 
+        - !Ref HelloRtPrivate
+      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.s3'
+      VpcEndpointType: 'Gateway'
+      VpcId: !Ref HelloVpc
 
   #===== Subnets
-  HelloSubnetA:
+  HelloSubnetPublic:
     Type: AWS::EC2::Subnet
     Properties:
-      AvailabilityZone: !FindInMap [ Application, Settings, AvailabilityZoneA ]
-      CidrBlock: !FindInMap [ Network, Settings, SubnetCidrBlockA ]
+      AvailabilityZone: !FindInMap [ Application, Settings, AvailabilityZone ]
+      CidrBlock: !FindInMap [ Network, Settings, SubnetCidrBlockPublic ]
       MapPublicIpOnLaunch: true
       Tags:
         - Key: 'Name'
           Value: !Sub
-            - 'Hello subnet A ${UniqueSuffix}'
+            - 'Hello subnet public ${UniqueSuffix}'
             - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
-      VpcId: !Ref HelloVpcA
+      VpcId: !Ref HelloVpc
 
-  HelloSubnetB:
+  HelloSubnetPrivate:
     Type: AWS::EC2::Subnet
     Properties:
-      AvailabilityZone: !FindInMap [ Application, Settings, AvailabilityZoneB ]
-      CidrBlock: !FindInMap [ Network, Settings, SubnetCidrBlockB ]
+      AvailabilityZone: !FindInMap [ Application, Settings, AvailabilityZone ]
+      CidrBlock: !FindInMap [ Network, Settings, SubnetCidrBlockPrivate ]
       Tags:
         - Key: 'Name'
           Value: !Sub
-            - 'Hello subnet B ${UniqueSuffix}'
+            - 'Hello subnet private ${UniqueSuffix}'
             - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
-      VpcId: !Ref HelloVpcB
+      VpcId: !Ref HelloVpc
 
   HelloSg: 
     Type: AWS::EC2::SecurityGroup
@@ -152,31 +153,47 @@ Resources:
       SecurityGroupIngress: 
         CidrIp: '0.0.0.0/0'
         IpProtocol: -1
-      VpcId: !Ref HelloVpcA 
+      VpcId: !Ref HelloVpc
 
-  #===== Route table
-  HelloRt:
+  #===== Route tables
+  HelloRtPublic:
     Type: AWS::EC2::RouteTable
     Properties:
       Tags: 
         - Key: 'Name'
           Value: !Sub
-            - 'Hello RT ${UniqueSuffix}'
+            - 'Hello RT public ${UniqueSuffix}'
             - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
-      VpcId: !Ref HelloVpcA
+      VpcId: !Ref HelloVpc
 
   HelloRouteIPv4:
     Type: AWS::EC2::Route
     Properties:
       DestinationCidrBlock: '0.0.0.0/0'
       GatewayId: !Ref HelloIgw 
-      RouteTableId: !Ref HelloRt   
+      RouteTableId: !Ref HelloRtPublic   
 
-  HelloRtAssociate:
+  HelloRtPublicAssociate:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      RouteTableId: !Ref HelloRt 
-      SubnetId: !Ref HelloSubnetA
+      RouteTableId: !Ref HelloRtPublic 
+      SubnetId: !Ref HelloSubnetPublic
+
+  HelloRtPrivate:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      Tags: 
+        - Key: 'Name'
+          Value: !Sub
+            - 'Hello RT private ${UniqueSuffix}'
+            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+      VpcId: !Ref HelloVpc 
+
+  HelloRtPrivateAssociate:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref HelloRtPrivate 
+      SubnetId: !Ref HelloSubnetPrivate
 
   #===== IAM
   HelloRole:

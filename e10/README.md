@@ -31,8 +31,8 @@ Add a Cloudwatch alarm for > 20% CPU utilization.
 
 Add a step scaling policy tracking CPU utilization.
 
-https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/quickref-autoscaling.html
-https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-as-policy.html
+- [Autoscaling examples](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/quickref-autoscaling.html)
+- [ScalingPolicy](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-as-policy.html)
 
 **Verify:**
 - Breach the alarm via `stress` and observe ASG create a new instance.
