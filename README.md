@@ -100,29 +100,7 @@ Study topics:
     https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-network-interface-attachment.html
 
 
-================= E8: Cloudwatch Agent
-  Difficulty: 4*
-  
-
-  v1 VPC, subnet, IGW, RT, IAM
-  Goal: Create foundational components.
-  https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/create-iam-roles-for-cloudwatch-agent.html
-
-  v2 VPC, subnet, IGW, RT, IAM, SSM
-    Goal: 
-    https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-init.html#w2ab1c33c42c29b9b2
-    https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-signal.html
-    https://github.com/awslabs/aws-cloudformation-templates/blob/master/aws/solutions/AmazonCloudWatchAgent/inline/amazon_linux.template
-
-  v3 VPC, subnet, IGW, RT, IAM, SSM, EC2
-    Goal: `amazon-cloudwatch-agent-ctl -h` on instance
-    Goal: `amazon-cloudwatch-agent-ctl -a status` on instance
-    https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Agent-Configuration-File-Details.html
-
-  v4 VPC, subnet, IGW, RT, IAM, SSM, EC2, CW
-    Goal: View logs from Cloudwatch Agent in Cloudwatch
-    https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/install-CloudWatch-Agent-commandline-fleet.html
-
+E08 MAPPINGS
 E09 ADD KMS ALIAS
 E12 ECS
 E18 R53 (DEPENDENT ON DOMAIN)
@@ -130,12 +108,12 @@ E19 CFN (DEPENDENT ON DOMAIN)
 
 VPC ENDPOINTS + VPC PEERING
 Kinesis
+Step functions
+Event bridge
+Origin Access Identity
 
 ==================== BACKLOG
 Global accelerator
 Lambda@Edge
 IOPS
 "Spot" instances (https://docs.aws.amazon.com/autoscaling/ec2/userguide/capacity-rebalance.html, )
-Step functions
-Event bridge
-Origin Access Identity

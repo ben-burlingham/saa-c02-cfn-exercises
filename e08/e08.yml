@@ -25,17 +25,11 @@ Resources:
         configSets:
           cwagent:
             - installCloudwatchAgent
-
-            ##### BEGIN NEW ADDITIONS #####
             - startCloudwatchAgent
-            ##### END NEW ADDITIONS #####
-
         installCloudwatchAgent:
           packages:
             yum:
               amazon-cloudwatch-agent: []
-        
-        ##### BEGIN NEW ADDITIONS #####
         startCloudwatchAgent:
           commands:
             0_extract_config_from_ssm:
@@ -43,8 +37,6 @@ Resources:
 
             1_fetch_config_and_start:
               command: sudo amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json -s
-
-        ##### END NEW ADDITIONS #####
       
   #===== SSM
   HelloSsmParameter:
