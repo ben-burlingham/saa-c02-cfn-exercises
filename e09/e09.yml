@@ -2,7 +2,7 @@ Parameters:
   UniqueSuffix: 
     AllowedPattern: ^[\d\w]{5,}$
     Type: String
-    Description: Suffixed identifier to provide uniqueness on all names
+    Description: Suffixed identifier to provide uniqueness on all S3 buckets
 
 Resources: 
   #===== S3
@@ -24,7 +24,7 @@ Resources:
   HelloBucketUnencryptedPolicy: 
     Type: AWS::S3::BucketPolicy
     Properties: 
-      Bucket:  !Ref HelloBucketUnencrypted
+      Bucket: !Ref HelloBucketUnencrypted
       PolicyDocument: 
         Statement: 
           - Principal: 
@@ -41,11 +41,10 @@ Resources:
               StringEquals: 
                 s3:x-amz-acl: 'bucket-owner-full-control'
 
-  ##### BEGIN NEW ADDITIONS #####
   HelloBucketEncryptedPolicy: 
     Type: AWS::S3::BucketPolicy
     Properties: 
-      Bucket:  !Ref HelloBucketEncrypted
+      Bucket: !Ref HelloBucketEncrypted
       PolicyDocument: 
         Statement: 
           - Principal: 
@@ -61,7 +60,6 @@ Resources:
             Condition:
               StringEquals: 
                 s3:x-amz-acl: 'bucket-owner-full-control'
-  ##### END NEW ADDITIONS #####
 
   #===== CloudTrail
   HelloCloudTrailUnencrypted:
@@ -73,7 +71,6 @@ Resources:
       S3BucketName: !Ref HelloBucketUnencrypted
       TrailName: hello-cloud-trail-unencrypted
 
-  ##### BEGIN NEW ADDITIONS #####
   HelloCloudTrailEncrypted:
     DependsOn: HelloBucketEncryptedPolicy
     Type: AWS::CloudTrail::Trail
@@ -83,7 +80,6 @@ Resources:
       KMSKeyId: !Ref HelloKmsKey 
       S3BucketName: !Ref HelloBucketEncrypted
       TrailName: hello-cloud-trail-encrypted
-  ##### END NEW ADDITIONS #####
 
   #===== KMS
   HelloKmsKey: 

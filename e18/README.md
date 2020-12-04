@@ -14,4 +14,24 @@ Create two S3 buckets to statically host two separate HTML pages.
 
 ## Exercise 2
 
+- 
+
+
+
+
 https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-cloudfront-cloudfrontoriginaccessidentity.html
+
+
+R53 (DEPENDENT ON DOMAIN)
+2x EC2 + httpd
+health check
+failover hosted
+subdomain?
+hosted zone query logging?
+
+CFN (DEPENDENT ON DOMAIN)
+cloudfront distribution
+origin access identity 
+failover with two origins?
+WAF? (very maybe)
+add lambda? (nah)

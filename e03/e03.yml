@@ -21,7 +21,7 @@ Resources:
       IamInstanceProfile: !Ref HelloInstanceProfile
       ImageId: !FindInMap [ Instances, Settings, ImageId ]
       InstanceType: !FindInMap [ Instances, Settings, InstanceType ]
-      SubnetId:  !Ref HelloSubnet 
+      SubnetId: !Ref HelloSubnet 
       Tags: 
         - Key: 'Name'
           Value: 'Hello Instance A'
@@ -33,7 +33,7 @@ Resources:
       IamInstanceProfile: !Ref HelloInstanceProfile
       ImageId: !FindInMap [ Instances, Settings, ImageId ]
       InstanceType: !FindInMap [ Instances, Settings, InstanceType ]
-      SubnetId:  !Ref HelloSubnet 
+      SubnetId: !Ref HelloSubnet 
       Tags: 
         - Key: 'Name'
           Value: 'Hello Instance B'

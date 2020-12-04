@@ -1,0 +1,208 @@
+Mappings:
+  Instances:
+    Settings:
+      ImageId: 'ami-04bf6dcdc9ab498ca'
+      InstanceType: 't2.micro'
+  Network:
+    Settings:
+      SubnetCidrBlockA: '10.16.0.0/24'
+      SubnetCidrBlockB: '10.16.128.0/24'
+      VpcCidrBlockA: '10.16.0.0/17'
+      VpcCidrBlockB: '10.16.128.0/17'
+  Application:
+    Settings:
+      AvailabilityZoneA: 'us-east-1a'
+      AvailabilityZoneB: 'us-west-1a'
+      UniqueSuffix: 'e20'
+
+Resources:
+  #===== EC2
+  HelloInstanceA: 
+    Type: AWS::EC2::Instance
+    Properties: 
+      AvailabilityZone: !FindInMap [ Application, Settings, AvailabilityZoneA ]
+      IamInstanceProfile: !Ref HelloInstanceProfile
+      ImageId: !FindInMap [ Instances, Settings, ImageId ]
+      InstanceType: !FindInMap [ Instances, Settings, InstanceType ]
+      SecurityGroupIds:
+        - !Ref HelloSg
+      SubnetId: !Ref HelloSubnetA
+      Tags: 
+        - Key: 'Name'
+          Value: !Sub
+            - 'Hello Instance A ${UniqueSuffix}'
+            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+  
+  # HelloInstanceB: 
+  #   Type: AWS::EC2::Instance
+  #   Properties: 
+  #     AvailabilityZone: !FindInMap [ Application, Settings, AvailabilityZoneB ]
+  #     IamInstanceProfile: !Ref HelloInstanceProfile
+  #     ImageId: !FindInMap [ Instances, Settings, ImageId ]
+  #     InstanceType: !FindInMap [ Instances, Settings, InstanceType ]
+  #     SecurityGroupIds:
+  #       - !Ref HelloSg
+  #     SubnetId: !Ref HelloSubnetB
+  #     Tags: 
+  #       - Key: 'Name'
+  #         Value: !Sub
+  #           - 'Hello Instance B ${UniqueSuffix}'
+  #           - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+
+  #===== S3
+  # HelloBucket: 
+  #   Type: AWS::S3::Bucket
+  #   Properties: 
+
+  #     ###### FIX THIS
+  #     BucketName: 'hello-bucket-burlingham'
+  #     ######
+
+  # HelloBucketPolicy: 
+  #   Type: AWS::S3::BucketPolicy
+  #   Properties: 
+  #     Bucket: !Ref HelloBucket
+  #     PolicyDocument: 
+  #       Statement: 
+  #         Principal: '*'
+  #         Action: '*'
+  #         Effect: 'Allow'
+  #         Resource: !Sub
+  #           - arn:aws:s3:::${TargetBucketName}/*
+  #           - TargetBucketName: !Ref HelloBucket
+
+  # HelloS3Endpoint:
+  #   Type: AWS::EC2::VPCEndpoint
+  #   Properties: 
+  #     PolicyDocument: Json
+  #     PrivateDnsEnabled: Boolean
+  #     RouteTableIds: 
+  #       - String
+  #     SecurityGroupIds: 
+  #       - String
+  #     ServiceName: String
+  #     SubnetIds: 
+  #       - String
+  #     VpcEndpointType: String
+  #     VpcId: String
+
+  #====== VPC
+  HelloVpcA:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !FindInMap [ Network, Settings, VpcCidrBlockA ]
+      Tags:
+        - Key: 'Name'
+          Value: !Sub
+            - 'Hello VPC A ${UniqueSuffix}'
+            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+  
+  HelloVpcB:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !FindInMap [ Network, Settings, VpcCidrBlockB ]
+      Tags:
+        - Key: 'Name'
+          Value: !Sub
+            - 'Hello VPC B ${UniqueSuffix}'
+            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+  
+  HelloIgw:
+    Type: AWS::EC2::InternetGateway
+      
+  HelloVpcIgwAttach:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref HelloIgw 
+      VpcId: !Ref HelloVpcA
+
+  #===== Subnets
+  HelloSubnetA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !FindInMap [ Application, Settings, AvailabilityZoneA ]
+      CidrBlock: !FindInMap [ Network, Settings, SubnetCidrBlockA ]
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: 'Name'
+          Value: !Sub
+            - 'Hello subnet A ${UniqueSuffix}'
+            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+      VpcId: !Ref HelloVpcA
+
+  HelloSubnetB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !FindInMap [ Application, Settings, AvailabilityZoneB ]
+      CidrBlock: !FindInMap [ Network, Settings, SubnetCidrBlockB ]
+      Tags:
+        - Key: 'Name'
+          Value: !Sub
+            - 'Hello subnet B ${UniqueSuffix}'
+            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+      VpcId: !Ref HelloVpcB
+
+  HelloSg: 
+    Type: AWS::EC2::SecurityGroup
+    Properties: 
+      GroupDescription: 'Open to IPv4 traffic'
+      GroupName: !Sub
+        - 'Hello SG ${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+      SecurityGroupIngress: 
+        CidrIp: '0.0.0.0/0'
+        IpProtocol: -1
+      VpcId: !Ref HelloVpcA 
+
+  #===== Route table
+  HelloRt:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      Tags: 
+        - Key: 'Name'
+          Value: !Sub
+            - 'Hello RT ${UniqueSuffix}'
+            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+      VpcId: !Ref HelloVpcA
+
+  HelloRouteIPv4:
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: '0.0.0.0/0'
+      GatewayId: !Ref HelloIgw 
+      RouteTableId: !Ref HelloRt   
+
+  HelloRtAssociate:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref HelloRt 
+      SubnetId: !Ref HelloSubnetA
+
+  #===== IAM
+  HelloRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          Effect: 'Allow'
+          Principal: 
+            Service: 
+              - 'ec2.amazonaws.com'
+          Action: 
+            - 'sts:AssumeRole'
+      Description: 'Hello Role'
+      ManagedPolicyArns: 
+        - 'arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore'
+        - 'arn:aws:iam::aws:policy/AmazonEC2FullAccess'
+      RoleName: !Sub
+        - 'hello-role-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+
+  HelloInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties: 
+      InstanceProfileName: !Sub
+        - 'hello-instance-profile-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+      Roles: 
+        - !Ref HelloRole

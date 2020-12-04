@@ -123,39 +123,11 @@ Study topics:
     Goal: View logs from Cloudwatch Agent in Cloudwatch
     https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/install-CloudWatch-Agent-commandline-fleet.html
 
-================= E9: KMS, Cloudtrail
-
-  ADD ALIAS
-  PARAMS TO TOP
-
-  Additional command line parameter: 
-    --parameters ParameterKey=UniqueSuffix,ParameterValue=foo 
-
-  v1 
-    Goal: Create CMK key with only administrative permissions.
-    Goal: Create two buckets, encrypt one with CMK.
-    Goal: Observe blocked access to encrypted bucket.
-    https://docs.aws.amazon.com/kms/latest/developerguide/key-policies.html#key-policy-default-allow-administrators
-    https://aws.amazon.com/premiumsupport/knowledge-center/update-key-policy-future/
-
-  v2 
-    Goal: Create Cloudtrail that delivers data to unencrypted bucket.
-    Verify: Observe Cloudtrail logs in unencrypted bucket.
-    https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-cloudtrail-trail.html
-
-  v3 
-    Goal: Extend CMK with Cloudtrail policies.
-    https://docs.aws.amazon.com/awscloudtrail/latest/userguide/create-kms-key-policy-for-cloudtrail.html
-
-  v4 
-    Goal: Create Cloudtrail that delivers data to encrypted bucket.
-    Verify: Observe Cloudtrail logs in encrypted bucket.
-
-
+E09 ADD KMS ALIAS
 E12 ECS
-E18
+E18 R53 (DEPENDENT ON DOMAIN)
+E19 CFN (DEPENDENT ON DOMAIN)
 
-Cloudfront + origin access identity + static hosting + R53 "Hosted Zones" and "Health Check"
 VPC ENDPOINTS + VPC PEERING
 Kinesis
 
@@ -163,6 +135,7 @@ Kinesis
 Global accelerator
 Lambda@Edge
 IOPS
-"Spot" instances (https://docs.aws.amazon.com/autoscaling/ec2/userguide/capacity-rebalance.html, https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-as-launchconfig.html#cfn-as-launchconfig-spotprice)
+"Spot" instances (https://docs.aws.amazon.com/autoscaling/ec2/userguide/capacity-rebalance.html, )
 Step functions
 Event bridge
+Origin Access Identity

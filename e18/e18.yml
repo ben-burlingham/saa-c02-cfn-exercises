@@ -1,55 +1,105 @@
+# Parameters: 
+#   DomainName: 
+#     Type: String
+#     Description: Fully qualified domain name
+
 Mappings:
-  Network:
+  Instances:
     Settings:
-      SubnetCidrBlock0: '10.16.0.0/24'
-      VpcCidrBlock: '10.16.0.0/16'
+      ImageId: 'ami-04bf6dcdc9ab498ca'
+      InstanceType: 't2.micro'
   Application:
     Settings:
       AvailabilityZone: 'us-east-1a'
       UniqueSuffix: 'e18'
 
 Resources:
-  #===== S3 buckets
-  HelloBucketA: 
-    Type: AWS::S3::Bucket
+  #===== EC2
+  HelloInstanceA: 
+    Type: AWS::EC2::Instance
     Properties: 
-      BucketName: 'hello-bucket-burlingham-a'
-      WebsiteConfiguration:  
-        ErrorDocument: 'hello1.html'
-        IndexDocument: 'hello1.html'
+      AvailabilityZone: !FindInMap [ Application, Settings, AvailabilityZone ]
+      IamInstanceProfile: !Ref HelloInstanceProfile
+      ImageId: !FindInMap [ Instances, Settings, ImageId ]
+      InstanceType: !FindInMap [ Instances, Settings, InstanceType ]
+      Tags: 
+        - Key: 'Name'
+          Value: !Sub
+            - 'Hello Instance A ${UniqueSuffix}'
+            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
 
-  HelloBucketB: 
-    Type: AWS::S3::Bucket
+  HelloInstanceB: 
+    Type: AWS::EC2::Instance
     Properties: 
-      BucketName: 'hello-bucket-burlingham-b'
-      WebsiteConfiguration:  
-        ErrorDocument: 'hello2.html'
-        IndexDocument: 'hello2.html'
+      AvailabilityZone: !FindInMap [ Application, Settings, AvailabilityZone ]
+      IamInstanceProfile: !Ref HelloInstanceProfile
+      ImageId: !FindInMap [ Instances, Settings, ImageId ]
+      InstanceType: !FindInMap [ Instances, Settings, InstanceType ]
+      Tags: 
+        - Key: 'Name'
+          Value: !Sub
+            - 'Hello Instance B ${UniqueSuffix}'
+            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
 
-  #===== Bucket policy
-  HelloBucketPolicyA: 
-    Type: AWS::S3::BucketPolicy
-    Properties: 
-      Bucket:  !Ref HelloBucketA
-      PolicyDocument: 
-        Statement: 
-          Principal: '*'
-          Action: '*'
+  #===== IAM
+  HelloRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
           Effect: 'Allow'
-          Resource: !Sub
-            - arn:aws:s3:::${TargetBucketName}/*
-            - TargetBucketName: !Ref HelloBucketA
+          Principal: 
+            Service: 
+              - 'ec2.amazonaws.com'
+          Action: 
+            - 'sts:AssumeRole'
+      Description: 'Hello Role'
+      ManagedPolicyArns: 
+        - 'arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore'
+      RoleName: !Sub
+        - 'hello-role-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+
+  HelloInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties: 
+      InstanceProfileName: !Sub
+        - 'hello-instance-profile-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+      Roles: 
+        - !Ref HelloRole
+
+  #===== R53
+  HelloRecord:
+    Type: AWS::Route53::RecordSet
+    Properties: 
+      Failover: String
+      HealthCheckId: !Ref HelloHealthCheckA
+      HostedZoneId: !Ref HelloHostedZone
+      Name: !Sub
+        - 'hello-record-ec2A-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+      ResourceRecords: 
+        - String
+      SetIdentifier: String
+      TTL: '60'
+      Type: 'A'
+
+
+  #===== Health checks
+  # HelloHealthCheckA:
+  #   Type: AWS::Route53::HealthCheck
+  #   Properties: 
+  #     HealthCheckConfig:
+  #       IPAddress: 192.0.2.44
+  #       Port: 80
+  #       Type: HTTP
+  #       ResourcePath: '/'
+  #       FullyQualifiedDomainName: !Ref DomainName
+  #       RequestInterval: 30
+  #       FailureThreshold: 3
   
-  HelloBucketPolicyB: 
-    Type: AWS::S3::BucketPolicy
-    Properties: 
-      Bucket:  !Ref HelloBucketB
-      PolicyDocument: 
-        Statement: 
-          Principal: '*'
-          Action: '*'
-          Effect: 'Allow'
-          Resource: !Sub
-            - arn:aws:s3:::${TargetBucketName}/*
-            - TargetBucketName: !Ref HelloBucketB
-
+  # HelloHostedZone:
+  #   Type: AWS::Route53::HostedZone
+  #   Properties: 
+  #     Name: !Ref DomainName

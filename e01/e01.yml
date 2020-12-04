@@ -2,7 +2,7 @@ Parameters:
   UniqueSuffix: 
     AllowedPattern: ^[\d\w]{5,}$
     Type: String
-    Description: Suffixed identifier to provide uniqueness on all names
+    Description: Suffixed identifier to provide uniqueness on all S3 buckets
 
 Resources: 
   #===== Bucket creation
@@ -16,7 +16,7 @@ Resources:
               SSEAlgorithm: 'AES256'
       BucketName: !Sub 
         - 'hello-source-${Suffix}'
-        - Suffix:  !Ref UniqueSuffix
+        - Suffix: !Ref UniqueSuffix
       ReplicationConfiguration: 
         Role: !GetAtt HelloRole.Arn
         Rules: 
@@ -44,7 +44,7 @@ Resources:
   HelloBucketSourcePolicy: 
     Type: AWS::S3::BucketPolicy
     Properties: 
-      Bucket:  !Ref HelloBucketSource
+      Bucket: !Ref HelloBucketSource
       PolicyDocument: 
         Statement: 
           Principal: '*'

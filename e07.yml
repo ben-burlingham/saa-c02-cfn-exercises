@@ -79,7 +79,7 @@ Resources:
       IamInstanceProfile: !Ref HelloInstanceProfile
       ImageId: ami-04bf6dcdc9ab498ca
       InstanceType: 't2.micro'
-      SubnetId:  !Ref HelloSubnet 
+      SubnetId: !Ref HelloSubnet 
       Tags: 
         - Key: "Name"
           Value: "Hello Instance"

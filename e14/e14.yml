@@ -23,7 +23,7 @@ Resources:
       InstanceType: !FindInMap [ Instances, Settings, InstanceType ]
       SecurityGroupIds:
         - !Ref HelloSg
-      SubnetId:  !Ref HelloSubnet 
+      SubnetId: !Ref HelloSubnet 
       Tags: 
         - Key: 'Name'
           Value: 'Hello Instance A'
@@ -37,7 +37,7 @@ Resources:
       InstanceType: !FindInMap [ Instances, Settings, InstanceType ]
       SecurityGroupIds:
         - !Ref HelloSg
-      SubnetId:  !Ref HelloSubnet 
+      SubnetId: !Ref HelloSubnet 
       Tags: 
         - Key: 'Name'
           Value: 'Hello Instance B'

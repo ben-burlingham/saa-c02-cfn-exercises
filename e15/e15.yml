@@ -24,10 +24,12 @@ Resources:
       InstanceType: !FindInMap [ Instances, Settings, InstanceType ]
       SecurityGroupIds:
         - !Ref HelloSg
-      SubnetId:  !Ref HelloSubnetEast1a 
+      SubnetId: !Ref HelloSubnetEast1a 
       Tags: 
         - Key: 'Name'
-          Value: 'Hello Instance A'
+          Value: !Sub
+            - 'Hello Instance A ${UniqueSuffix}'
+            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
   
   HelloInstanceB: 
     Type: AWS::EC2::Instance
@@ -38,10 +40,12 @@ Resources:
       InstanceType: !FindInMap [ Instances, Settings, InstanceType ]
       SecurityGroupIds:
         - !Ref HelloSg
-      SubnetId:  !Ref HelloSubnetEast1a 
+      SubnetId: !Ref HelloSubnetEast1a 
       Tags: 
         - Key: 'Name'
-          Value: 'Hello Instance B'
+          Value: !Sub
+            - 'Hello Instance B ${UniqueSuffix}'
+            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
 
   #===== IAM
   HelloRole:

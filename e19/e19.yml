@@ -1,0 +1,70 @@
+Mappings:
+  Network:
+    Settings:
+      SubnetCidrBlock0: '10.16.0.0/24'
+      VpcCidrBlock: '10.16.0.0/16'
+  S3:
+    Settings:
+      Document: 'hello.html'
+  Application:
+    Settings:
+      AvailabilityZone: 'us-east-1a'
+      UniqueSuffix: 'e19'
+
+Resources:
+  #===== S3
+  HelloBucket: 
+    Type: AWS::S3::Bucket
+    Properties: 
+
+      ###### FIX THIS
+      BucketName: 'hello-bucket-burlingham'
+      ######
+      
+      WebsiteConfiguration:  
+        # Upload these manually.
+        ErrorDocument: !FindInMap [ S3, Settings, Document ]
+        IndexDocument: !FindInMap [ S3, Settings, Document ]
+
+  HelloBucketPolicy: 
+    Type: AWS::S3::BucketPolicy
+    Properties: 
+      Bucket: !Ref HelloBucket
+      PolicyDocument: 
+        Statement: 
+          Principal: '*'
+          Action: '*'
+          Effect: 'Allow'
+          Resource: !Sub
+            - arn:aws:s3:::${TargetBucketName}/*
+            - TargetBucketName: !Ref HelloBucket
+  
+  #===== Cloudfront
+  HelloDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties: 
+      DistributionConfig: 
+        # Comment: String
+        DefaultCacheBehavior: 
+          # CachePolicyId: String
+          OriginRequestPolicyId: String
+          RealtimeLogConfigArn: String
+          SmoothStreaming: Boolean
+          TargetOriginId: String
+          ViewerProtocolPolicy: 'allow-all'
+        # DefaultRootObject: 'index.html' 
+        DefaultRootObject: 
+        # OriginGroups: 
+        #   OriginGroups
+        Origins: 
+          - CustomOriginConfig: 
+              # HTTPPort: '80'  
+              OriginKeepaliveTimeout: Integer
+              OriginProtocolPolicy: String
+              OriginReadTimeout: Integer
+              OriginSSLProtocols: 
+                - String
+            DomainName: String
+            Id: String
+            OriginCustomHeaders: 
+              - OriginCustomHeader
