@@ -3,6 +3,9 @@ Parameters:
     AllowedPattern: ^[\d\w]{5,}$
     Type: String
     Description: Suffixed identifier to provide uniqueness on all S3 buckets
+  KeyPairName:
+    Type: String
+    Description: Name of key pair to use for instance SSH
 
 Mappings:
   Instances:
@@ -54,7 +57,6 @@ Resources:
           Value: !Sub
             - 'Hello Instance Private ${UniqueSuffix}'
             - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
-  
 
   #===== S3
   HelloBucket: 
@@ -117,6 +119,18 @@ Resources:
       VpcEndpointType: 'Gateway'
       VpcId: !Ref HelloVpc
 
+  HelloSg: 
+    Type: AWS::EC2::SecurityGroup
+    Properties: 
+      GroupDescription: 'Open to IPv4 traffic'
+      GroupName: !Sub
+        - 'Hello SG ${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+      SecurityGroupIngress: 
+        CidrIp: '0.0.0.0/0'
+        IpProtocol: -1
+      VpcId: !Ref HelloVpc
+
   #===== Subnets
   HelloSubnetPublic:
     Type: AWS::EC2::Subnet
@@ -141,18 +155,6 @@ Resources:
           Value: !Sub
             - 'Hello subnet private ${UniqueSuffix}'
             - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
-      VpcId: !Ref HelloVpc
-
-  HelloSg: 
-    Type: AWS::EC2::SecurityGroup
-    Properties: 
-      GroupDescription: 'Open to IPv4 traffic'
-      GroupName: !Sub
-        - 'Hello SG ${UniqueSuffix}'
-        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
-      SecurityGroupIngress: 
-        CidrIp: '0.0.0.0/0'
-        IpProtocol: -1
       VpcId: !Ref HelloVpc
 
   #===== Route tables

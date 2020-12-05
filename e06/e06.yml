@@ -71,7 +71,7 @@ Resources:
     Type: AWS::EC2::Subnet
     Properties: 
         AssignIpv6AddressOnCreation: true
-        AvailabilityZone: 'us-east-1a'
+        AvailabilityZone: !FindInMap [ Application, Settings, AvailabilityZone ]
         CidrBlock: !Select [ 0,  !Cidr [ !GetAtt HelloVpc.CidrBlock, 1, 8 ]]
         Ipv6CidrBlock: !Select [ 0,  !Cidr [ !Select [ 0,  !GetAtt HelloVpc.Ipv6CidrBlocks  ] , 1, 64 ] ]
         Tags: 

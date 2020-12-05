@@ -97,7 +97,7 @@ Resources:
         - 'hello-lambda-${UniqueSuffix}'
         - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
       Handler: 'index.handler'
-      Role: !GetAtt HelloRole.Arn
+      Role: !GetAtt HelloRoleLambdaExecution.Arn
       Runtime: 'nodejs12.x'
 
   HelloLambdaPermission:
@@ -111,7 +111,7 @@ Resources:
       Principal: 'apigateway.amazonaws.com'
 
   #===== IAM
-  HelloRole:
+  HelloRoleLambdaExecution:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:

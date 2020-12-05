@@ -98,11 +98,11 @@ v4 VPC, subnet, IGW, RT, IAM, EC2, VPC flow log, subnet flow log, ENI, ENI flow 
   https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-network-interface.html
   https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-network-interface-attachment.html
 
-E08 MAPPINGS
 E09 ADD KMS ALIAS
 E12 ECS
 E18 R53 (DEPENDENT ON DOMAIN)
 E19 CFN (DEPENDENT ON DOMAIN)
+E20 KEYNAME PARAMETER KeyName
 E21 
   
 

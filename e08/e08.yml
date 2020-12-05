@@ -1,3 +1,17 @@
+Mappings:
+  Instances:
+    Settings:
+      ImageId: 'ami-04bf6dcdc9ab498ca'
+      InstanceType: 't2.micro'
+  Network:
+    Settings:
+      SubnetCidrBlock: '10.16.0.0/24'
+      VpcCidrBlock: '10.16.0.0/16'
+  Application:
+    Settings:
+      AvailabilityZone: 'us-east-1a'
+      UniqueSuffix: 'e08'
+
 Resources: 
   #===== EC2 Instance
   HelloInstance: 
@@ -6,14 +20,16 @@ Resources:
       ResourceSignal:
         Timeout: PT3M
     Properties: 
-      AvailabilityZone: 'us-east-1a'
+      AvailabilityZone: !FindInMap [ Application, Settings, AvailabilityZone ]
       IamInstanceProfile: !Ref HelloInstanceProfile
-      ImageId: ami-04bf6dcdc9ab498ca
-      InstanceType: 't2.micro'
+      ImageId: !FindInMap [ Instances, Settings, ImageId ]
+      InstanceType: !FindInMap [ Instances, Settings, InstanceType ]
       SubnetId: !Ref HelloSubnet 
       Tags: 
         - Key: 'Name'
-          Value: 'Hello Instance'
+          Value: !Sub
+            - 'Hello Instance ${UniqueSuffix}'
+            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
       UserData:
         Fn::Base64: !Sub |
           #!/bin/bash -xe
@@ -42,7 +58,9 @@ Resources:
   HelloSsmParameter:
     Type: AWS::SSM::Parameter
     Properties: 
-      Name: 'hello-ssm-parameter'
+      Name: !Sub
+            - 'hello-ssm-parameter-${UniqueSuffix}'
+            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
       Type: 'String'
       Value: 
         '{
@@ -81,23 +99,29 @@ Resources:
       ManagedPolicyArns: 
         - 'arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore'
         - 'arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy'
-      RoleName: 'hello-role'
+      RoleName: !Sub
+        - 'hello-role-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
 
   HelloInstanceProfile:
     Type: AWS::IAM::InstanceProfile
     Properties: 
-      InstanceProfileName: 'hello-instance-profile'
+      InstanceProfileName: !Sub
+        - 'hello-instance-profile-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
       Roles: 
         - !Ref HelloRole
 
-  #===== VPC + IGW
+  #===== VPC
   HelloVpc:
     Type: AWS::EC2::VPC
     Properties:
-      CidrBlock: '10.16.0.0/16'
+      CidrBlock: !FindInMap [ Network, Settings, VpcCidrBlock ]
       Tags: 
         - Key: 'Name'
-          Value: 'Hello VPC'
+          Value: !Sub
+            - 'Hello VPC ${UniqueSuffix}'
+            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
   
   HelloIgw:
     Type: AWS::EC2::InternetGateway
@@ -112,12 +136,14 @@ Resources:
   HelloSubnet:
     Type: AWS::EC2::Subnet
     Properties:
-      AvailabilityZone: 'us-east-1a'
-      CidrBlock: '10.16.0.0/24'
+      AvailabilityZone: !FindInMap [ Application, Settings, AvailabilityZone ]
+      CidrBlock: !FindInMap [ Network, Settings, SubnetCidrBlock ]
       MapPublicIpOnLaunch: true
       Tags: 
         - Key: 'Name'
-          Value: 'Hello Public Subnet'
+          Value: !Sub
+            - 'Hello Subnet ${UniqueSuffix}'
+            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
       VpcId: !Ref HelloVpc
 
   #===== Route Table
@@ -126,7 +152,9 @@ Resources:
     Properties:
       Tags: 
         - Key: 'Name'
-          Value: 'Hello RT'
+          Value: !Sub
+            - 'Hello RT ${UniqueSuffix}'
+            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
       VpcId: !Ref HelloVpc
 
   HelloRouteIPv4:

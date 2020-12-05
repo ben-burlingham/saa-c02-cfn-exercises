@@ -130,7 +130,7 @@ Resources:
         - Id: !Ref HelloInstanceB
       VpcId: !Ref HelloVpc
 
-  #====== Network
+  #====== VPC
   HelloVpc:
     Type: AWS::EC2::VPC
     Properties:
@@ -166,7 +166,7 @@ Resources:
   HelloSubnetEast1a:
     Type: AWS::EC2::Subnet
     Properties:
-      AvailabilityZone: 'us-east-1a'
+      AvailabilityZone: !FindInMap [ Application, Settings, AvailabilityZone ]
       CidrBlock: !FindInMap [ Network, Settings, SubnetCidrBlock0 ]
       MapPublicIpOnLaunch: true
       Tags: 
