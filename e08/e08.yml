@@ -49,7 +49,7 @@ Resources:
         startCloudwatchAgent:
           commands:
             0_extract_config_from_ssm:
-              command: !Sub aws ssm get-parameter --name=${HelloSsmParameter} --region=us-east-1a --output text --query Parameter.Value > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
+              command: !Sub aws ssm get-parameter --name=${HelloSsmParameter} --region=us-east-1 --output text --query Parameter.Value > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
 
             1_fetch_config_and_start:
               command: sudo amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json -s
@@ -130,6 +130,18 @@ Resources:
     Type: AWS::EC2::VPCGatewayAttachment
     Properties:
       InternetGatewayId: !Ref HelloIgw 
+      VpcId: !Ref HelloVpc
+
+  HelloSg: 
+    Type: AWS::EC2::SecurityGroup
+    Properties: 
+      GroupDescription: 'Open to IPv4 traffic'
+      GroupName: !Sub
+        - 'Hello SG ${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+      SecurityGroupIngress: 
+        CidrIp: '0.0.0.0/0'
+        IpProtocol: -1
       VpcId: !Ref HelloVpc
 
   #===== Subnet

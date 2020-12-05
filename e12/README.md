@@ -16,14 +16,18 @@ Create an autoscaling group
 
 aws cloudformation update-stack --profile iamadmin-general --capabilities CAPABILITY_NAMED_IAM --template-body file://e12/e12.yml --stack-name bb12
 
+docker push ACCOUNT_NUMBER.dkr.ecr.us-east-1.amazonaws.com/hello-ecr-httpd:latest
+
+
 
 - [CapacityProvider](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ecs-capacityprovider.html)
 
 ## Exercise 
-Create cluster in EC2 mode with uniqueness on HTTPD response
+Create cluster in EC2 mode with uniqueness on HTTPD response??
 
-## Exercise 
-Put ALB in front of cluster
+Create cluster, capacity provider
+
+Create task and execution role.
 
 - [Task vs Service](https://stackoverflow.com/questions/42960678/)
 

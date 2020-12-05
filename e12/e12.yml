@@ -14,24 +14,23 @@ Resources:
     Properties: 
       RepositoryName: 'hello-ecr-httpd'
       
-  # HelloCluster:
-  #   Type: AWS::ECS::Cluster
-  #   Properties: 
-  #     CapacityProviders:
-  #       - HelloCapacityProvider
-  #     ClusterName: !Sub
-  #       - 'hello-cluster-${UniqueSuffix}'
-  #       - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+  HelloCluster:
+    Type: AWS::ECS::Cluster
+    Properties: 
+      CapacityProviders:
+        - !Ref HelloCapacityProvider
+      ClusterName: !Sub
+        - 'hello-cluster-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
 
-  # HelloCapacityProvider:
-  #   Type: AWS::ECS::CapacityProvider
-  #   Properties: 
-  #     AutoScalingGroupProvider: 
-  #       AutoScalingGroupArn: !Ref HelloAsg
-  #       # ManagedScaling: ManagedScaling
-  #     Name: !Sub
-  #       - 'Hello-cp-${UniqueSuffix}'
-  #       - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+  HelloCapacityProvider:
+    Type: AWS::ECS::CapacityProvider
+    Properties: 
+      AutoScalingGroupProvider: 
+        AutoScalingGroupArn: !Ref HelloAsg
+      Name: !Sub
+        - 'Hello-cp-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
 
   # HelloTask:
   #   # DependsOn: HelloLogGroup
@@ -39,7 +38,7 @@ Resources:
   #   Properties:
   #     ContainerDefinitions: 
   #       # - Command: 
-  #       #   - '/hello'
+  #       #   - 'echo "HELLO TASK"'
   #       - Image: !Sub '${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${HelloEcrHttpd}:latest'
   #         # LogConfiguration:
   #         #   LogDriver: 'awslogs'
@@ -104,24 +103,24 @@ Resources:
           ScalingAdjustment: -1
 
   #===== IAM
-  # HelloRoleTaskExecution:
-  #   Type: AWS::IAM::Role
-  #   Properties:
-  #     AssumeRolePolicyDocument:
-  #       Statement:
-  #         Effect: 'Allow'
-  #         Principal: 
-  #           Service: 
-  #             - 'ecs-tasks.amazonaws.com'
-  #         Action: 
-  #           - 'sts:AssumeRole'
-  #     Description: 'Hello Role'
-  #     ManagedPolicyArns: 
-  #       - 'arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy'
-  #       - 'arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore'
-  #     RoleName: !Sub
-  #       - 'hello-role-${UniqueSuffix}'
-  #       - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+  HelloRoleTaskExecution:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          Effect: 'Allow'
+          Principal: 
+            Service: 
+              - 'ecs-tasks.amazonaws.com'
+          Action: 
+            - 'sts:AssumeRole'
+      Description: 'Hello Role'
+      ManagedPolicyArns: 
+        - 'arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy'
+        - 'arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore'
+      RoleName: !Sub
+        - 'hello-role-task-execution-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
 
   HelloSessionManagerRole:
     Type: AWS::IAM::Role
@@ -138,7 +137,7 @@ Resources:
       ManagedPolicyArns: 
         - 'arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore'
       RoleName: !Sub
-        - 'hello-role-${UniqueSuffix}'
+        - 'hello-role-session-manager-${UniqueSuffix}'
         - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
 
   HelloInstanceProfile:
