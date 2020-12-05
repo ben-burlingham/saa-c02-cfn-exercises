@@ -9,72 +9,44 @@ Mappings:
       UniqueSuffix: 'e12'
 
 Resources:
-  HelloEcrHttpd:
-    Type: AWS::ECR::Repository
-    Properties: 
-      RepositoryName: 'hello-ecr-httpd'
+  # HelloEcrHttpd:
+  #   Type: AWS::ECR::Repository
+  #   Properties: 
+  #     RepositoryName: 'hello-ecr-httpd'
       
-  HelloCluster:
-    Type: AWS::ECS::Cluster
-    Properties: 
-      CapacityProviders:
-        - !Ref HelloCapacityProvider
-      ClusterName: !Sub
-        - 'hello-cluster-${UniqueSuffix}'
-        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
-
-  HelloCapacityProvider:
-    Type: AWS::ECS::CapacityProvider
-    Properties: 
-      AutoScalingGroupProvider: 
-        AutoScalingGroupArn: !Ref HelloAsg
-      Name: !Sub
-        - 'Hello-cp-${UniqueSuffix}'
-        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
-
-  # HelloTask:
-  #   # DependsOn: HelloLogGroup
-  #   Type: AWS::ECS::TaskDefinition
-  #   Properties:
-  #     ContainerDefinitions: 
-  #       # - Command: 
-  #       #   - 'echo "HELLO TASK"'
-  #       - Image: !Sub '${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${HelloEcrHttpd}:latest'
-  #         # LogConfiguration:
-  #         #   LogDriver: 'awslogs'
-  #         #   Options: 
-  #         #     awslogs-group: !Ref HelloLogGroup
-  #         #     awslogs-region: !Sub ${AWS::Region}
-  #         #     awslogs-stream-prefix: !Sub
-  #         #       - 'hello-task-stream-${UniqueSuffix}'
-  #         #       - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
-  #         Name: !Sub
-  #           - 'hello-task-container-${UniqueSuffix}'
-  #           - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
-  #         StopTimeout: 10
-  #     Cpu: 256
-  #     ExecutionRoleArn: !GetAtt HelloRoleTaskExecution.Arn
-  #     Family: !Sub
-  #       - 'hello-task-family-${UniqueSuffix}'
+  # HelloCluster:
+  #   Type: AWS::ECS::Cluster
+  #   Properties: 
+  #     CapacityProviders:
+  #       - !Ref HelloCapacityProvider
+  #     ClusterName: !Sub
+  #       - 'hello-cluster-${UniqueSuffix}'
   #       - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
-  #     Memory: 512
-  #     Tags: 
-  #       - Key: 'Name'
-  #         Value: 'Hello Task'
+
+  # HelloCapacityProvider:
+  #   Type: AWS::ECS::CapacityProvider
+  #   Properties: 
+  #     AutoScalingGroupProvider: 
+  #       AutoScalingGroupArn: !Ref HelloAsg
+  #     Name: !Sub
+  #       - 'Hello-cp-${UniqueSuffix}'
+  #       - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+
+ 
 
   #===== Autoscaling
-  HelloLaunchTemplate:
-    Type: AWS::EC2::LaunchTemplate
-    Properties: 
-      LaunchTemplateName: !Sub
-        - 'hello-lt-${UniqueSuffix}'
-        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
-      LaunchTemplateData: 
-        IamInstanceProfile: 
-          Arn: !GetAtt HelloInstanceProfile.Arn
-        ImageId: !FindInMap [ Instances, Settings, ImageId ]
-        InstanceInitiatedShutdownBehavior: 'terminate'
-        InstanceType: !FindInMap [ Instances, Settings, InstanceType ]
+  # HelloLaunchTemplate:
+  #   Type: AWS::EC2::LaunchTemplate
+  #   Properties: 
+  #     LaunchTemplateName: !Sub
+  #       - 'hello-lt-${UniqueSuffix}'
+  #       - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+  #     LaunchTemplateData: 
+  #       IamInstanceProfile: 
+  #         Arn: !GetAtt HelloInstanceProfile.Arn
+  #       ImageId: !FindInMap [ Instances, Settings, ImageId ]
+  #       InstanceInitiatedShutdownBehavior: 'terminate'
+  #       InstanceType: !FindInMap [ Instances, Settings, InstanceType ]
 
   HelloAsg:
     Type: AWS::AutoScaling::AutoScalingGroup

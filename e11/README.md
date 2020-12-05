@@ -3,6 +3,7 @@
 - ECS (Elastic Container Service)
 - ECR (Elastic Container Registry)
 - Fargate mode
+- LaunchTemplate
 
 ---
 
