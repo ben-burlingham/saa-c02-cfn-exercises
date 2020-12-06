@@ -103,12 +103,7 @@ E12 ECS
 E18 R53 (DEPENDENT ON DOMAIN)
 E19 CFN (DEPENDENT ON DOMAIN)
 E20 KEYNAME PARAMETER KeyName
-E21 
-  
-
-Kinesis
-Step functions
-Event bridge
+E21 EC2 event to Kinesis via eventbridge, trigger step function to base64 decode
 
 ==================== BACKLOG
 Global accelerator
@@ -116,3 +111,4 @@ Lambda@Edge
 IOPS
 "Spot" instances (https://docs.aws.amazon.com/autoscaling/ec2/userguide/capacity-rebalance.html, )
 rename with numbers but more specific topic names?
+Link "create a FOO" to the foo docs in all readme

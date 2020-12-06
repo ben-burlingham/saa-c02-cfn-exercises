@@ -1,52 +1,101 @@
 Mappings:
   Instances:
     Settings:
-      ImageId: 'ami-04bf6dcdc9ab498ca'
+      ImageId: 'ami-0128839b21d19300e'
       InstanceType: 't2.micro'
+  Network:
+    Settings:
+      SubnetCidrBlock: '10.16.0.0/24'
+      VpcCidrBlock: '10.16.0.0/16'
   Application:
     Settings:
       AvailabilityZone: 'us-east-1a'
       UniqueSuffix: 'e12'
 
 Resources:
-  # HelloEcrHttpd:
-  #   Type: AWS::ECR::Repository
-  #   Properties: 
-  #     RepositoryName: 'hello-ecr-httpd'
-      
-  # HelloCluster:
-  #   Type: AWS::ECS::Cluster
-  #   Properties: 
-  #     CapacityProviders:
-  #       - !Ref HelloCapacityProvider
-  #     ClusterName: !Sub
-  #       - 'hello-cluster-${UniqueSuffix}'
-  #       - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+  #===== Logs
+  HelloLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub
+        - 'hello-ecs-log-group-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
 
-  # HelloCapacityProvider:
-  #   Type: AWS::ECS::CapacityProvider
-  #   Properties: 
-  #     AutoScalingGroupProvider: 
-  #       AutoScalingGroupArn: !Ref HelloAsg
-  #     Name: !Sub
-  #       - 'Hello-cp-${UniqueSuffix}'
-  #       - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+  #===== ECS
+  HelloEcrHelloWorld:
+    Type: AWS::ECR::Repository
+    Properties: 
+      RepositoryName: 'hello-ecr-hello-world'
 
- 
+  HelloCluster:
+    Type: AWS::ECS::Cluster
+    Properties: 
+      ClusterName: !Sub
+        - 'hello-cluster-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+    
+  HelloEcs:
+    Type: AWS::ECS::Service
+    Properties: 
+      Cluster: !Ref HelloCluster
+      # WARNING: Be careful, this will create log groups continuously.
+      # Since /hello exits quickly,  
+      DesiredCount: 0
+      LaunchType: 'EC2'
+      ServiceName: !Sub
+        - 'hello-ecs-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+      TaskDefinition: !Ref HelloTask
+
+  HelloTask:
+    DependsOn: HelloLogGroup
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      ContainerDefinitions: 
+        - Command: 
+          - '/hello'
+          Image: !Sub '${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${HelloEcrHelloWorld}:latest'
+          LogConfiguration:
+            LogDriver: 'awslogs'
+            Options: 
+              awslogs-group: !Ref HelloLogGroup
+              awslogs-region: !Sub ${AWS::Region}
+              awslogs-stream-prefix: !Sub
+                - 'hello-task-stream-${UniqueSuffix}'
+                - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+          Name: !Sub
+            - 'hello-task-container-${UniqueSuffix}'
+            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+          StopTimeout: 10
+      Cpu: 256
+      ExecutionRoleArn: !GetAtt HelloRole.Arn
+      Family: !Sub
+        - 'hello-task-family-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+      Memory: 512
+      Tags: 
+        - Key: 'Name'
+          Value: 'Hello Task'
 
   #===== Autoscaling
-  # HelloLaunchTemplate:
-  #   Type: AWS::EC2::LaunchTemplate
-  #   Properties: 
-  #     LaunchTemplateName: !Sub
-  #       - 'hello-lt-${UniqueSuffix}'
-  #       - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
-  #     LaunchTemplateData: 
-  #       IamInstanceProfile: 
-  #         Arn: !GetAtt HelloInstanceProfile.Arn
-  #       ImageId: !FindInMap [ Instances, Settings, ImageId ]
-  #       InstanceInitiatedShutdownBehavior: 'terminate'
-  #       InstanceType: !FindInMap [ Instances, Settings, InstanceType ]
+  HelloLaunchConfiguration:
+    Type: AWS::AutoScaling::LaunchConfiguration
+    Properties: 
+      AssociatePublicIpAddress: true
+      IamInstanceProfile: 'arn:aws:iam::704560105568:instance-profile/ecsInstanceRole'
+      IamInstanceProfile: !Ref HelloInstanceProfile
+      ImageId: !FindInMap [ Instances, Settings, ImageId ]
+      InstanceType: !FindInMap [ Instances, Settings, InstanceType ]
+      LaunchConfigurationName: !Sub
+        - 'hello-lc-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+      SecurityGroups: 
+        - !Ref HelloSg
+      UserData: 
+        Fn::Base64: !Sub |
+          #!/bin/bash -xe
+          echo ECS_CLUSTER=${HelloCluster} >> /etc/ecs/ecs.config;
+          echo ECS_BACKEND_HOST= >> /etc/ecs/ecs.config;
 
   HelloAsg:
     Type: AWS::AutoScaling::AutoScalingGroup
@@ -56,11 +105,18 @@ Resources:
         - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
       AvailabilityZones: 
         - !FindInMap [ Application, Settings, AvailabilityZone ]
-      LaunchTemplate: 
-        LaunchTemplateId: !Ref HelloLaunchTemplate
-        Version: !GetAtt HelloLaunchTemplate.LatestVersionNumber 
-      MaxSize: 2
-      MinSize: 1
+      DesiredCapacity: 1
+      LaunchConfigurationName: !Ref HelloLaunchConfiguration
+      MaxSize: 1
+      MinSize: 0
+      Tags:
+        - Key: Name
+          PropagateAtLaunch: true
+          Value: !Sub
+            - 'Hello Instance ${UniqueSuffix}'
+            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+      VPCZoneIdentifier:
+        - !Ref HelloSubnet
   
   HelloScalingPolicy:
     Type: AWS::AutoScaling::ScalingPolicy
@@ -74,27 +130,78 @@ Resources:
         - MetricIntervalUpperBound: 20
           ScalingAdjustment: -1
 
-  #===== IAM
-  HelloRoleTaskExecution:
-    Type: AWS::IAM::Role
+  #===== VPC
+  HelloVpc:
+    Type: AWS::EC2::VPC
     Properties:
-      AssumeRolePolicyDocument:
-        Statement:
-          Effect: 'Allow'
-          Principal: 
-            Service: 
-              - 'ecs-tasks.amazonaws.com'
-          Action: 
-            - 'sts:AssumeRole'
-      Description: 'Hello Role'
-      ManagedPolicyArns: 
-        - 'arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy'
-        - 'arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore'
-      RoleName: !Sub
-        - 'hello-role-task-execution-${UniqueSuffix}'
-        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+      CidrBlock: !FindInMap [ Network, Settings, VpcCidrBlock ]
+      Tags: 
+        - Key: 'Name'
+          Value: !Sub
+            - 'Hello VPC ${UniqueSuffix}'
+            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+  
+  HelloIgw:
+    Type: AWS::EC2::InternetGateway
+      
+  HelloVpcIgwAttach:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref HelloIgw 
+      VpcId: !Ref HelloVpc
 
-  HelloSessionManagerRole:
+  HelloSg: 
+    Type: AWS::EC2::SecurityGroup
+    Properties: 
+      GroupDescription: 'Open to IPv4 traffic'
+      GroupName: !Sub
+        - 'Hello SG ${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+      SecurityGroupIngress: 
+        CidrIp: '0.0.0.0/0'
+        IpProtocol: -1
+      VpcId: !Ref HelloVpc
+
+  #===== Subnet
+  HelloSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !FindInMap [ Application, Settings, AvailabilityZone ]
+      CidrBlock: !FindInMap [ Network, Settings, SubnetCidrBlock ]
+      MapPublicIpOnLaunch: true
+      Tags: 
+        - Key: 'Name'
+          Value: !Sub
+            - 'Hello Subnet ${UniqueSuffix}'
+            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+      VpcId: !Ref HelloVpc
+
+  #===== Route Table
+  HelloRt:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      Tags: 
+        - Key: 'Name'
+          Value: !Sub
+            - 'Hello RT ${UniqueSuffix}'
+            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+      VpcId: !Ref HelloVpc
+
+  HelloRouteIPv4:
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: '0.0.0.0/0'
+      GatewayId: !Ref HelloIgw 
+      RouteTableId: !Ref HelloRt   
+
+  HelloRtAssociate:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref HelloRt 
+      SubnetId: !Ref HelloSubnet
+
+  #===== IAM
+  HelloRole:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -103,13 +210,17 @@ Resources:
           Principal: 
             Service: 
               - 'ec2.amazonaws.com'
+              - 'ecs.amazonaws.com'
+              - 'ecs-tasks.amazonaws.com'
           Action: 
             - 'sts:AssumeRole'
       Description: 'Hello Role'
       ManagedPolicyArns: 
+        - 'arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy'
+        - 'arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role'
         - 'arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore'
       RoleName: !Sub
-        - 'hello-role-session-manager-${UniqueSuffix}'
+        - 'hello-role-${UniqueSuffix}'
         - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
 
   HelloInstanceProfile:
@@ -119,4 +230,4 @@ Resources:
         - 'hello-instance-profile-${UniqueSuffix}'
         - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
       Roles: 
-        - !Ref HelloSessionManagerRole
+        - !Ref HelloRole

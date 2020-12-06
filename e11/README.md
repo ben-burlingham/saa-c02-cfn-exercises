@@ -1,8 +1,7 @@
 # Topics
-- EC2 (Elastic Compute Cloud)
-- ECS (Elastic Container Service)
-- ECR (Elastic Container Registry)
-- Fargate mode
+- EC2 
+- ECS (Fargate mode)
+- ECR 
 - LaunchTemplate
 
 ---
@@ -11,7 +10,6 @@
 Create an ECR repository for the Docker Official `hello-world` image.
 - [Official Hello World Image](https://hub.docker.com/_/hello-world)
 - [Docker image rate limits](https://docs.docker.com/docker-hub/download-rate-limit/)
-- [Docker image inspect](https://docs.docker.com/engine/reference/commandline/inspect/)
 - [Pushing Docker image to ECR](https://docs.aws.amazon.com/AmazonECR/latest/userguide/getting-started-cli.html)
 
 **Verify:** 
@@ -20,11 +18,9 @@ Create an ECR repository for the Docker Official `hello-world` image.
 ---
 
 ## Exercise 2 
-Create a log group.
-Create the task execution role.
+Create a log group. Create the task execution role.
 - [Task execution role](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_execution_IAM_role.html)
     
-
 **Verify:** 
 - Observe role and group in AWS console.
 
@@ -34,6 +30,7 @@ Create the task execution role.
 Create Fargate cluster and task definition.
 - [ECS Cluster](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ecs-cluster.html)
 - [Task Definition](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ecs-taskdefinition.html)
+- [Docker image inspect](https://docs.docker.com/engine/reference/commandline/inspect/)
 
 **Verify:**
 - Observe task and container definitions in ECS console.

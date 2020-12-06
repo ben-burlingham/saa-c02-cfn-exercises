@@ -1,42 +1,45 @@
 # Topics
-
-ECS
-ECR
-ALB
+- ECR
+- ECS (EC2 + Networking mode)
+- Autoscaling groups
 - LaunchConfiguration
 
-
 ## Exercise 1
-Create ECR with the `httpd` official image.
+Create a VPN, subnet, route table, and a role. Create an ECR with the Docker Official `hello-world` image.
+- Refer to previous evolution(s) if necessary. 
+- `aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ACCOUNT_NUMBER.dkr.ecr.us-east-1.amazonaws.com`
+- `docker push ACCOUNT_NUMBER.dkr.ecr.us-east-1.amazonaws.com/hello-ecr-hello-world:latest`
 
-PUSHING DOCKER IMAGE: MAY HAVE TO ADD `--profile` IF AWS FAILING
+**Verify:**
+- Observe the components are present and configured properly.
 
 ## Exercise 2
 Create an autoscaling group with a launch configuration.
 - [LaunchConfiguration](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-as-launchconfig.html)
 
-
-
-aws cloudformation update-stack --profile iamadmin-general --capabilities CAPABILITY_NAMED_IAM --template-body file://e12/e12.yml --stack-name bb12
-
-docker push ACCOUNT_NUMBER.dkr.ecr.us-east-1.amazonaws.com/hello-ecr-httpd:latest
-
-
-
-- [CapacityProvider](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ecs-capacityprovider.html)
+**Verify:**
+- Using the EC2 console, confirm that the autoscaling group has populated with (at least) 1 instance.
 
 ## Exercise 
-Create cluster in EC2 mode with uniqueness on HTTPD response??
-
-
-Create cluster, capacity provider
-verify: one container instance in cluster
-
-Create task and execution role.
-
+Create a cluster.
+- The ECS console cluster "Create" wizard results in a Cloudformation template that can be used for reference.
+- [AmazonEC2ContainerServiceforEC2Role](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs_managed_policies.html#AmazonEC2ContainerServiceforEC2Role)
 - [Task vs Service](https://stackoverflow.com/questions/42960678/)
+- [ECS::Service](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ecs-service.html)
+- [UserData for config file](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-agent-config.html)
+
+**Verify:**
+- Using the cluster list page, confirm there are (at least) 1 container instance in the cluster.
+- Confirm that the container instance is visible under the `ECS Instances` tab in Cluster console.
 
 ## Exercise 4  
-ECS with scaling policy monitoring requests? 
+Create a task that outputs to a log group. Create an ECS Service that runs the task.
+- Refer to previous evolution(s) if necessary. 
+  
+- [ecs-tasks trust policy](https://stackoverflow.com/a/49016565/385273)
+- [AmazonECSTaskExecutionRolePolicy](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_execution_IAM_role.html)
+- [Docker image inspect](https://docs.docker.com/engine/reference/commandline/inspect/)
 
-https://docs.aws.amazon.com/AmazonECS/latest/developerguide/service-autoscaling-targettracking.html
+**Verify:**
+- Confirm that the service instance is visible under the `Services` tab in Cluster console.
+- Confirm log groups are being created as task exits and starts.

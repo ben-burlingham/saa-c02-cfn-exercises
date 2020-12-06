@@ -1,4 +1,9 @@
 
+# HelloEcrHttpd:
+  #   Type: AWS::ECR::Repository
+  #   Properties: 
+  #     RepositoryName: 'hello-ecr-httpd'
+  
  # HelloTask:
   #   # DependsOn: HelloLogGroup
   #   Type: AWS::ECS::TaskDefinition
