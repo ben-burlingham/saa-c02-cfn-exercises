@@ -1,41 +1,47 @@
 # Topics
-- VPC peering
+- Kinesis
+- Event bridge
+- Step functions
 
 ---
 
-VPN + Transit gateway to A
-Peering to B
-
-1 VPC A + SUBNET
-2 VPN TRANSIT GATEWAY INTO A  TransitGatewayId
-- [Transit gateway information](https://docs.aws.amazon.com/whitepapers/latest/aws-vpc-connectivity-options/aws-transit-gateway-vpn.html)
-- [Route](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-route.html)
-
-4 VPC B + PEERING
-
-- [VpnConnection](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-vpn-connection.html)
-- [CustomerGateway](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-customer-gateway.html)
-
 ## Exercise 1
-EDIT THIS
-1 create two vpcs, two subnets. verify no connectivity
+Create a spot fleet and its role. Set the `Type` of the fleet to  'maintain', and `ReplaceUnhealthyInstances` to `true`.
+- [Spot Fleet prerequisites](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/spot-fleet-requests.html#spot-fleet-prerequisites)
+- [AWS::EC2::SpotFleet](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-spotfleet.html)
+- [AmazonEC2SpotFleetTaggingRole](https://docs.aws.amazon.com/batch/latest/userguide/spot_fleet_IAM_role.html)
 
 **Verify:**
+- Using the EC2 console, terminate an instance. Confirm that the fleet replaces it after a few minutes.
 
 ---
 
 ## Exercise 2
-add vpc peering update and two route tables. 
-- [PeeringConnection](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-vpcpeeringconnection.html)
-- [VpcPeeringConnectionId Route](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-route.html)
+Create a Kinesis stream. Create an EventBridge rule that targets the stream for any EC2SpotFleet event.
+- [AWS::Events::Rule](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-events-rule.html)
+- [AWS::Kinesis::Stream](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-kinesis-stream.html)
+- [Stream fundamentals](https://docs.aws.amazon.com/streams/latest/dev/fundamental-stream.html)
+- [Shard iterator operations](https://docs.aws.amazon.com/cli/latest/reference/kinesis/get-shard-iterator.html)
 
 **Verify:**
-- Each instance can ping the private IP of the other instance.
+- After terminating an instance, use the current Unix timestamp to query the shard. Confirm records are present after a few minutes.
 
+  ```SHARD_ITERATOR=$(aws kinesis get-shard-iterator --shard-id shardId-000000000000 --shard-iterator-type AT_TIMESTAMP --timestamp <timestamp> --stream-name <streamname> --query 'ShardIterator') && aws kinesis get-records --shard-iterator $SHARD_ITERATOR```
+
+---
 
 ## Exercise 3
-Transit gateway
-VPN
+Create a step function with at least two Lambdas. 
+- [AWS::StepFunctions::StateMachine](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-stepfunctions-statemachine.html)
+- [States language](https://docs.aws.amazon.com/step-functions/latest/dg/concepts-amazon-states-language.html)
 
+**Verify:**
+- Confirm successful execution using the States console.
+- Confirm lambda execution logs are present in Cloudwatch.
 
-https://docs.aws.amazon.com/whitepapers/latest/building-scalable-secure-multi-vpc-network-infrastructure/transit-gateway-vs-vpc-peering.html
+## Exercise 4
+Create an EventBridge rule that targets the step function on a schedule.
+- [Schedule expressions](https://docs.aws.amazon.com/AmazonCloudWatch/latest/events/ScheduledEvents.html)
+
+**Verify:**
+- Observe successful executions in `Executions` tab of States console.

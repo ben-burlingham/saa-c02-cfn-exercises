@@ -3,208 +3,144 @@ Mappings:
     Settings:
       ImageId: 'ami-04bf6dcdc9ab498ca'
       InstanceType: 't2.micro'
-  Network:
-    Settings:
-      SubnetCidrBlockA: '10.16.0.0/24'
-      SubnetCidrBlockB: '10.16.128.0/24'
-      VpcCidrBlockA: '10.16.0.0/17'
-      VpcCidrBlockB: '10.16.128.0/17'
   Application:
     Settings:
       AvailabilityZone: 'us-east-1a'
       UniqueSuffix: 'e21'
 
 Resources:
-  #===== Instances
-  HelloInstanceA: 
-    Type: AWS::EC2::Instance
+  #===== EC2
+  HelloSpotFleet:
+    Type: AWS::EC2::SpotFleet
     Properties: 
-      AvailabilityZone: !FindInMap [ Application, Settings, AvailabilityZone ]
-      IamInstanceProfile: !Ref HelloInstanceProfile
-      ImageId: !FindInMap [ Instances, Settings, ImageId ]
-      InstanceType: !FindInMap [ Instances, Settings, InstanceType ]
-      SecurityGroupIds:
-        - !Ref HelloSgA
-      SubnetId: !Ref HelloSubnetA
-      Tags: 
-        - Key: 'Name'
-          Value: !Sub
-            - 'Hello Instance A ${UniqueSuffix}'
-            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
-  
-  HelloInstanceB: 
-    Type: AWS::EC2::Instance
+      SpotFleetRequestConfigData: 
+        AllocationStrategy: 'lowestPrice'
+        IamFleetRole: !GetAtt HelloRole.Arn
+        LaunchTemplateConfigs: 
+          - LaunchTemplateSpecification: 
+              LaunchTemplateId: !Ref HelloLaunchTemplate
+              Version: 1
+        ReplaceUnhealthyInstances: true
+        TargetCapacity: 2
+        TerminateInstancesWithExpiration: true
+        Type: 'maintain'
+
+  HelloLaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
     Properties: 
-      AvailabilityZone: !FindInMap [ Application, Settings, AvailabilityZone ]
-      IamInstanceProfile: !Ref HelloInstanceProfile
-      ImageId: !FindInMap [ Instances, Settings, ImageId ]
-      InstanceType: !FindInMap [ Instances, Settings, InstanceType ]
-      SecurityGroupIds:
-        - !Ref HelloSgB
-      SubnetId: !Ref HelloSubnetB
-      Tags: 
-        - Key: 'Name'
-          Value: !Sub
-            - 'Hello Instance B ${UniqueSuffix}'
-            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
-
-  #===== VPC
-  # HelloPeering:
-  #   Type: AWS::EC2::VPCPeeringConnection
-  #   Properties: 
-  #     PeerVpcId: !Ref HelloVpcB
-  #     VpcId: !Ref HelloVpcA
-
-  HelloVpcA:
-    Type: AWS::EC2::VPC
-    Properties:
-      CidrBlock: !FindInMap [ Network, Settings, VpcCidrBlockA ]
-      Tags:
-        - Key: 'Name'
-          Value: !Sub
-            - 'Hello VPC A ${UniqueSuffix}'
-            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
-  
-  HelloVpcB:
-    Type: AWS::EC2::VPC
-    Properties:
-      CidrBlock: !FindInMap [ Network, Settings, VpcCidrBlockB ]
-      Tags:
-        - Key: 'Name'
-          Value: !Sub
-            - 'Hello VPC B ${UniqueSuffix}'
-            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
-
-  HelloIgwA:
-    Type: AWS::EC2::InternetGateway
-      
-  HelloIgwB:
-    Type: AWS::EC2::InternetGateway
-  
-  HelloVpcIgwAttachA:
-    Type: AWS::EC2::VPCGatewayAttachment
-    Properties:
-      InternetGatewayId: !Ref HelloIgwA
-      VpcId: !Ref HelloVpcA
-    
-  # HelloVpcIgwAttachB:
-  #   Type: AWS::EC2::VPCGatewayAttachment
-  #   Properties:
-  #     InternetGatewayId: !Ref HelloIgwB
-  #     VpcId: !Ref HelloVpcB
-
-  #===== Security groups
-  HelloSgA: 
-    Type: AWS::EC2::SecurityGroup
-    Properties: 
-      GroupDescription: 'Open to IPv4 traffic'
-      GroupName: !Sub
-        - 'Hello SG A ${UniqueSuffix}'
+      LaunchTemplateName: !Sub
+        - 'hello-lt-${UniqueSuffix}'
         - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
-      SecurityGroupIngress: 
-        CidrIp: '0.0.0.0/0'
-        IpProtocol: -1
-      VpcId: !Ref HelloVpcA
+      LaunchTemplateData: 
+        IamInstanceProfile: 
+          Arn: !GetAtt HelloInstanceProfile.Arn
+        ImageId: !FindInMap [ Instances, Settings, ImageId ]
+        InstanceType: !FindInMap [ Instances, Settings, InstanceType ]
 
-  HelloSgB: 
-    Type: AWS::EC2::SecurityGroup
+  #===== Kinesis
+  HelloStream:
+    Type: AWS::Kinesis::Stream
     Properties: 
-      GroupDescription: 'Open to IPv4 traffic'
-      GroupName: !Sub
-        - 'Hello SG B ${UniqueSuffix}'
+      Name: !Sub
+        - 'hello-stream-${UniqueSuffix}'
         - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
-      SecurityGroupIngress: 
-        CidrIp: '0.0.0.0/0'
-        IpProtocol: -1
-      VpcId: !Ref HelloVpcB
+      ShardCount: 1
 
-  #===== Subnets
-  HelloSubnetA:
-    Type: AWS::EC2::Subnet
-    Properties:
-      AvailabilityZone: !FindInMap [ Application, Settings, AvailabilityZone ]
-      CidrBlock: !FindInMap [ Network, Settings, SubnetCidrBlockA ]
-      MapPublicIpOnLaunch: true
-      Tags:
-        - Key: 'Name'
-          Value: !Sub
-            - 'Hello subnet public ${UniqueSuffix}'
+  #===== Event bridge
+  HelloRuleA:
+    Type: AWS::Events::Rule
+    Properties: 
+      Description: "EC2 instance state events to Kinesis."
+      EventPattern: |
+        {
+          "source": [
+            "aws.ec2spotfleet"
+          ]
+        }
+      Name: !Sub
+        - 'hello-rule-A-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+      State: 'ENABLED'
+      Targets: 
+        - Arn: !GetAtt HelloStream.Arn
+          Id: !Sub
+            - 'hello-rule-A-${UniqueSuffix}'
             - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
-      VpcId: !Ref HelloVpcA
+          RoleArn: !GetAtt HelloRole.Arn
 
-  HelloSubnetB:
-    Type: AWS::EC2::Subnet
-    Properties:
-      AvailabilityZone: !FindInMap [ Application, Settings, AvailabilityZone ]
-      CidrBlock: !FindInMap [ Network, Settings, SubnetCidrBlockB ]
-      # MapPublicIpOnLaunch: true
-      Tags:
-        - Key: 'Name'
-          Value: !Sub
-            - 'Hello subnet B ${UniqueSuffix}'
+  HelloRuleB:
+    Type: AWS::Events::Rule
+    Properties: 
+      Description: "Scheduled call to step function."
+      Name: !Sub
+        - 'hello-rule-B-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+      ScheduleExpression: 'rate(1 minute)'
+      State: 'ENABLED'
+      Targets: 
+        - Arn: !GetAtt HelloStateMachine.Arn
+          Id: !Sub
+            - 'hello-rule-B-${UniqueSuffix}'
             - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
-      VpcId: !Ref HelloVpcB
+          RoleArn: !GetAtt HelloRole.Arn
 
-  #===== Route tables
-  HelloRtA:
-    Type: AWS::EC2::RouteTable
-    Properties:
-      Tags: 
-        - Key: 'Name'
-          Value: !Sub
-            - 'Hello RT A ${UniqueSuffix}'
-            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
-      VpcId: !Ref HelloVpcA
+  #===== State machine
+  HelloStateMachine:
+    Type: AWS::StepFunctions::StateMachine
+    Properties: 
+      DefinitionString: !Sub |
+        {
+          "StartAt": "State0",
+          "States": {
+            "State0": {
+              "Type": "Task",
+              "Resource": "arn:aws:lambda:us-east-1:${AWS::AccountId}:function:${HelloLambda0}",
+              "Next": "State1"
+            },
+            "State1": {
+              "Type": "Task",
+              "Resource": "arn:aws:lambda:us-east-1:${AWS::AccountId}:function:${HelloLambda1}",
+              "End": true
+            }
+          }
+        }
+      RoleArn: !GetAtt HelloRole.Arn
+      StateMachineName: !Sub
+        - 'hello-state-machine-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
 
-  HelloRtB:
-    Type: AWS::EC2::RouteTable
-    Properties:
-      Tags: 
-        - Key: 'Name'
-          Value: !Sub
-            - 'Hello RT B ${UniqueSuffix}'
-            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
-      VpcId: !Ref HelloVpcB
-
-  HelloRouteIPv4A:
-    Type: AWS::EC2::Route
-    Properties:
-      DestinationCidrBlock: '0.0.0.0/0'
-      GatewayId: !Ref HelloIgwA
-      RouteTableId: !Ref HelloRtA 
-
-  # HelloRouteIPv4B:
-  #   Type: AWS::EC2::Route
-  #   Properties:
-  #     DestinationCidrBlock: '0.0.0.0/0'
-  #     GatewayId: !Ref HelloIgwB
-  #     RouteTableId: !Ref HelloRtB 
-
-  HelloRouteIPv4APeering:
-    Type: AWS::EC2::Route
-    Properties:
-      DestinationCidrBlock: !FindInMap [ Network, Settings, SubnetCidrBlockB ]
-      VpcPeeringConnectionId: !Ref HelloPeering
-      RouteTableId: !Ref HelloRtA
-
-  HelloRouteIPv4BPeering:
-    Type: AWS::EC2::Route
-    Properties:
-      DestinationCidrBlock: !FindInMap [ Network, Settings, SubnetCidrBlockA ]
-      VpcPeeringConnectionId: !Ref HelloPeering
-      RouteTableId: !Ref HelloRtB 
-
-  HelloRtAssociateA:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      RouteTableId: !Ref HelloRtA
-      SubnetId: !Ref HelloSubnetA
-
-  HelloRtAssociateB:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      RouteTableId: !Ref HelloRtB 
-      SubnetId: !Ref HelloSubnetB
+  #===== Lambda
+  HelloLambda0:
+    Type: AWS::Lambda::Function
+    Properties: 
+      Code: 
+        ZipFile: |
+          exports.handler = async (evt, ctx) => { 
+            console.log("Hello Lambda 0");
+            return "Hello Lambda 0" 
+          }
+      FunctionName: !Sub
+        - 'hello-lambda0-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+      Handler: 'index.handler'
+      Role: !GetAtt HelloRole.Arn
+      Runtime: 'nodejs12.x'
+  
+  HelloLambda1:
+    Type: AWS::Lambda::Function
+    Properties: 
+      Code: 
+        ZipFile: |
+          exports.handler = async (evt, ctx) => { 
+            console.log("Hello Lambda 1");
+            return "Hello Lambda 1" 
+          }
+      FunctionName: !Sub
+        - 'hello-lambda1-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+      Handler: 'index.handler'
+      Role: !GetAtt HelloRole.Arn
+      Runtime: 'nodejs12.x'
 
   #===== IAM
   HelloRole:
@@ -216,11 +152,20 @@ Resources:
           Principal: 
             Service: 
               - 'ec2.amazonaws.com'
+              - 'events.amazonaws.com'
+              - 'lambda.amazonaws.com'
+              - 'spot.amazonaws.com'
+              - 'spotfleet.amazonaws.com'
+              - 'states.amazonaws.com'
           Action: 
             - 'sts:AssumeRole'
       Description: 'Hello Role'
       ManagedPolicyArns: 
         - 'arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore'
+        - 'arn:aws:iam::aws:policy/service-role/AmazonEC2SpotFleetTaggingRole'
+        - 'arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
+        - 'arn:aws:iam::aws:policy/service-role/AWSLambdaRole'
+        - 'arn:aws:iam::aws:policy/AWSStepFunctionsFullAccess'
       RoleName: !Sub
         - 'hello-role-${UniqueSuffix}'
         - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
@@ -233,33 +178,3 @@ Resources:
         - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
       Roles: 
         - !Ref HelloRole
-
-  #===== TGW
-  HelloVpnConnection:
-    Type: AWS::EC2::VPNConnection
-    Properties: 
-      CustomerGatewayId: !Ref HelloCGW
-      TransitGatewayId: !Ref HelloTGW
-      Type: 'ipsec.1'
-
-  HelloTGW:
-    Type: AWS::EC2::TransitGateway
-
-  HelloCGW:
-    Type: AWS::EC2::CustomerGateway
-    Properties: 
-      BgpAsn: 65000
-
-      ####### PARAMETERIZE THIS BEFORE COMMIT
-      IpAddress: 
-      #######
-      
-      Type: 'ipsec.1'
-
-  HelloTGWAttach:
-    Type: AWS::EC2::TransitGatewayAttachment
-    Properties: 
-      SubnetIds: 
-        - !Ref HelloSubnetA
-      TransitGatewayId: !Ref HelloTGW
-      VpcId: !Ref HelloVpcA

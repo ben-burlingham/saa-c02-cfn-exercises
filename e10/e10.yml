@@ -14,7 +14,7 @@ Resources:
     Type: AWS::EC2::LaunchTemplate
     Properties: 
       LaunchTemplateName: !Sub
-        - 'hello-launch-template-${UniqueSuffix}'
+        - 'hello-lt-${UniqueSuffix}'
         - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
       LaunchTemplateData: 
         IamInstanceProfile: 

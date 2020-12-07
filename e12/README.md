@@ -33,7 +33,7 @@ Create a cluster.
 - Confirm that the container instance is visible under the `ECS Instances` tab in Cluster console.
 
 ## Exercise 4  
-Create a task that outputs to a log group. Create an ECS Service that runs the task.
+Create a task that outputs to a log group. Create an ECS Service **with a `DesiredCount` of 0**.
 - Refer to previous evolution(s) if necessary. 
   
 - [ecs-tasks trust policy](https://stackoverflow.com/a/49016565/385273)
@@ -42,4 +42,4 @@ Create a task that outputs to a log group. Create an ECS Service that runs the t
 
 **Verify:**
 - Confirm that the service instance is visible under the `Services` tab in Cluster console.
-- Confirm log groups are being created as task exits and starts.
+- Change its desired count to 1. Confirm log groups are being created as task exits and starts.

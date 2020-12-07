@@ -39,7 +39,7 @@ Resources:
     Properties: 
       Cluster: !Ref HelloCluster
       # WARNING: Be careful, this will create log groups continuously.
-      # Since /hello exits quickly,  
+      # Since /hello exits quickly, it will soon be started again.
       DesiredCount: 0
       LaunchType: 'EC2'
       ServiceName: !Sub
