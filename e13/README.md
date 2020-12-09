@@ -9,7 +9,7 @@ Note: These exercises can create incidental RDS snapshots. *Be sure to destroy t
 
 ## Exercise 1
 Create a VPC, a security group, and a route table. Add two subnets, each in a different AZ.
-- Refer to previous evolution(s) if necessary. 
+- Refer to previous exercise(s) if necessary. 
 
 **Verify:** 
 - Observe network components in VPC console.

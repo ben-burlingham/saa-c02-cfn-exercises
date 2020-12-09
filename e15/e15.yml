@@ -59,7 +59,6 @@ Resources:
               - 'ec2.amazonaws.com'
           Action: 
             - 'sts:AssumeRole'
-      Description: 'Hello Role'
       ManagedPolicyArns: 
         - 'arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore'
       RoleName: !Sub

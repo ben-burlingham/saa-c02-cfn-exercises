@@ -7,7 +7,7 @@
 
 ## Exercise 1
 Create two EC2 instances, A and B, and the role to connect to them.
-- Refer to previous evolution(s) if necessary. 
+- Refer to previous exercise(s) if necessary. 
 
 **Verify:** 
 - Use Session Manager to connect to each instance.
@@ -16,7 +16,7 @@ Create two EC2 instances, A and B, and the role to connect to them.
 
 ## Exercise 2
 Create a VPC, subnet, and security group.
-- Refer to previous evolution(s) if necessary. 
+- Refer to previous exercise(s) if necessary. 
 
 **Verify:** 
 - Confirm instance A and B have IPs in the subnet block.

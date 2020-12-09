@@ -104,7 +104,6 @@ Resources:
               - 'lambda.amazonaws.com'
           Action: 
             - 'sts:AssumeRole'
-      Description: 'Hello Role'
       ManagedPolicyArns: 
         - 'arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
         - 'arn:aws:iam::aws:policy/AmazonSQSFullAccess'

@@ -122,7 +122,6 @@ Resources:
               - 'lambda.amazonaws.com'
           Action: 
             - 'sts:AssumeRole'
-      Description: 'Hello Role'
       ManagedPolicyArns: 
         - 'arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
       RoleName: !Sub

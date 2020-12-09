@@ -6,7 +6,7 @@
 
 ## Exercise 1
 Create a VPN, subnet, route table, and a role. Create an ECR with the Docker Official `hello-world` image.
-- Refer to previous evolution(s) if necessary. 
+- Refer to previous exercise(s) if necessary. 
 - `aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ACCOUNT_NUMBER.dkr.ecr.us-east-1.amazonaws.com`
 - `docker push ACCOUNT_NUMBER.dkr.ecr.us-east-1.amazonaws.com/hello-ecr-hello-world:latest`
 
@@ -34,7 +34,7 @@ Create a cluster.
 
 ## Exercise 4  
 Create a task that outputs to a log group. Create an ECS Service **with a `DesiredCount` of 0**.
-- Refer to previous evolution(s) if necessary. 
+- Refer to previous exercise(s) if necessary. 
   
 - [ecs-tasks trust policy](https://stackoverflow.com/a/49016565/385273)
 - [AmazonECSTaskExecutionRolePolicy](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_execution_IAM_role.html)

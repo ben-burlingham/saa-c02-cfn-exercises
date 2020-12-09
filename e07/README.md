@@ -6,7 +6,7 @@
 
 ## Exercise 1
 Create a VPC, an EC2 instance, and a Session Manager role.
-- Refer to previous evolution(s) if necessary.
+- Refer to previous exercise(s) if necessary.
 
 **Verify:**
 - Use Session Manager to connect to the EC2 instance.

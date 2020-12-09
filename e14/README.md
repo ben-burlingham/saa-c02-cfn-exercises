@@ -6,7 +6,7 @@
 
 ## Exercise 1
 Create two EC2 instances, A and B, on a subnet.
-- Refer to previous evolution(s) if necessary. 
+- Refer to previous exercise(s) if necessary. 
 
 **Verify:** 
 - Use Session Manager to connect to each instance.

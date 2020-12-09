@@ -7,7 +7,7 @@
 
 ## Exercise 1
 Create two subnets and two EC2 instances, A and B, serving simple and unique `index.html`.
-- Refer to previous evolution(s) if necessary. 
+- Refer to previous exercise(s) if necessary. 
 
 **Verify:** 
 - Access both instances via HTTP and observe the page.
@@ -16,7 +16,7 @@ Create two subnets and two EC2 instances, A and B, serving simple and unique `in
 
 ## Exercise 2
 Apply an ALB. More additional attributes will be required than the NLB.
-- Refer to previous evolution(s) if necessary. 
+- Refer to previous exercise(s) if necessary. 
 - [LoadBalancer](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-elasticloadbalancingv2-loadbalancer.html)
 
 **Verify:** 

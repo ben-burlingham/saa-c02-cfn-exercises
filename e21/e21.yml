@@ -159,7 +159,6 @@ Resources:
               - 'states.amazonaws.com'
           Action: 
             - 'sts:AssumeRole'
-      Description: 'Hello Role'
       ManagedPolicyArns: 
         - 'arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore'
         - 'arn:aws:iam::aws:policy/service-role/AmazonEC2SpotFleetTaggingRole'

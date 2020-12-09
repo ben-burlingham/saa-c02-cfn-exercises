@@ -8,7 +8,7 @@
 
 ## Exercise 1 
 Create an EC2 instance on a subnet, and an instance profile for access.
-- Refer to previous evolution(s) if necessary. 
+- Refer to previous exercise(s) if necessary. 
 
 **Verify:** 
 - Use Session Manager to connect to the instance.

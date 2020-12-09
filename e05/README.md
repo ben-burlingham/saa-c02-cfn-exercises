@@ -1,3 +1,5 @@
+# Topics
+
 ================ E5: VPC NAT Gateway
 Two route tables are created for public and private.
 Route tables belong to a VPC, but are attached to subnets.

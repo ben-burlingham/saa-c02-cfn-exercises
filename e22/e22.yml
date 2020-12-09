@@ -6,208 +6,137 @@ Mappings:
   Network:
     Settings:
       SubnetCidrBlockA: '10.16.0.0/24'
-      SubnetCidrBlockB: '10.16.128.0/24'
-      VpcCidrBlockA: '10.16.0.0/17'
-      VpcCidrBlockB: '10.16.128.0/17'
+      SubnetCidrBlockB: '10.16.1.0/24'
+      VpcCidrBlock: '10.16.0.0/16'
   Application:
     Settings:
-      AvailabilityZone: 'us-east-1a'
+      AvailabilityZoneA: 'us-east-1a'
+      AvailabilityZoneB: 'us-east-1b'
       UniqueSuffix: 'e22'
 
 Resources:
-  #===== Instances
-  HelloInstanceA: 
-    Type: AWS::EC2::Instance
+  #===== DynamoDB
+  HelloDdbTable:
+    Type: AWS::DynamoDB::Table
     Properties: 
-      AvailabilityZone: !FindInMap [ Application, Settings, AvailabilityZone ]
-      IamInstanceProfile: !Ref HelloInstanceProfile
-      ImageId: !FindInMap [ Instances, Settings, ImageId ]
-      InstanceType: !FindInMap [ Instances, Settings, InstanceType ]
-      SecurityGroupIds:
-        - !Ref HelloSgA
-      SubnetId: !Ref HelloSubnetA
-      Tags: 
-        - Key: 'Name'
-          Value: !Sub
-            - 'Hello Instance A ${UniqueSuffix}'
+      AttributeDefinitions: 
+        - AttributeName: 'id'
+          AttributeType: 'N'
+        - AttributeName: 'guid'
+          AttributeType: 'S'
+        - AttributeName: 'author'
+          AttributeType: 'S'
+      BillingMode: 'PAY_PER_REQUEST'
+      GlobalSecondaryIndexes:
+        - IndexName: !Sub
+            - 'hello-gsi-${UniqueSuffix}'
             - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
-  
-  HelloInstanceB: 
-    Type: AWS::EC2::Instance
-    Properties: 
-      AvailabilityZone: !FindInMap [ Application, Settings, AvailabilityZone ]
-      IamInstanceProfile: !Ref HelloInstanceProfile
-      ImageId: !FindInMap [ Instances, Settings, ImageId ]
-      InstanceType: !FindInMap [ Instances, Settings, InstanceType ]
-      SecurityGroupIds:
-        - !Ref HelloSgB
-      SubnetId: !Ref HelloSubnetB
-      Tags: 
-        - Key: 'Name'
-          Value: !Sub
-            - 'Hello Instance B ${UniqueSuffix}'
+          KeySchema: 
+            - AttributeName: 'author'
+              KeyType: 'HASH'
+          Projection: 
+            NonKeyAttributes: 
+              - 'content'
+              - 'title'
+            ProjectionType: 'INCLUDE'
+      LocalSecondaryIndexes:
+        - IndexName: !Sub
+            - 'hello-lsi-${UniqueSuffix}'
             - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
-
-  #===== VPC
-  # HelloPeering:
-  #   Type: AWS::EC2::VPCPeeringConnection
-  #   Properties: 
-  #     PeerVpcId: !Ref HelloVpcB
-  #     VpcId: !Ref HelloVpcA
-
-  HelloVpcA:
-    Type: AWS::EC2::VPC
-    Properties:
-      CidrBlock: !FindInMap [ Network, Settings, VpcCidrBlockA ]
-      Tags:
-        - Key: 'Name'
-          Value: !Sub
-            - 'Hello VPC A ${UniqueSuffix}'
-            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
-  
-  HelloVpcB:
-    Type: AWS::EC2::VPC
-    Properties:
-      CidrBlock: !FindInMap [ Network, Settings, VpcCidrBlockB ]
-      Tags:
-        - Key: 'Name'
-          Value: !Sub
-            - 'Hello VPC B ${UniqueSuffix}'
-            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
-
-  HelloIgwA:
-    Type: AWS::EC2::InternetGateway
-      
-  HelloIgwB:
-    Type: AWS::EC2::InternetGateway
-  
-  HelloVpcIgwAttachA:
-    Type: AWS::EC2::VPCGatewayAttachment
-    Properties:
-      InternetGatewayId: !Ref HelloIgwA
-      VpcId: !Ref HelloVpcA
-    
-  # HelloVpcIgwAttachB:
-  #   Type: AWS::EC2::VPCGatewayAttachment
-  #   Properties:
-  #     InternetGatewayId: !Ref HelloIgwB
-  #     VpcId: !Ref HelloVpcB
-
-  #===== Security groups
-  HelloSgA: 
-    Type: AWS::EC2::SecurityGroup
-    Properties: 
-      GroupDescription: 'Open to IPv4 traffic'
-      GroupName: !Sub
-        - 'Hello SG A ${UniqueSuffix}'
+          KeySchema: 
+            - AttributeName: 'id'
+              KeyType: 'HASH'
+            - AttributeName: 'author'
+              KeyType: 'RANGE'
+          Projection: 
+            ProjectionType: 'KEYS_ONLY'
+      KeySchema: 
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+        - AttributeName: 'guid'
+          KeyType: 'RANGE'
+      StreamSpecification: 
+          StreamViewType: 'KEYS_ONLY'
+      TableName: !Sub
+        - 'hello-ddb-${UniqueSuffix}'
         - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
-      SecurityGroupIngress: 
-        CidrIp: '0.0.0.0/0'
-        IpProtocol: -1
-      VpcId: !Ref HelloVpcA
-
-  HelloSgB: 
-    Type: AWS::EC2::SecurityGroup
+  
+  HelloDax:
+    Type: AWS::DAX::Cluster
     Properties: 
-      GroupDescription: 'Open to IPv4 traffic'
-      GroupName: !Sub
-        - 'Hello SG B ${UniqueSuffix}'
+      AvailabilityZones: 
+        - !FindInMap [ Application, Settings, AvailabilityZoneA ]
+      ClusterName: !Sub
+        - 'hello-dax-${UniqueSuffix}'
         - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
-      SecurityGroupIngress: 
-        CidrIp: '0.0.0.0/0'
-        IpProtocol: -1
-      VpcId: !Ref HelloVpcB
+      IAMRoleARN: !GetAtt HelloRoleDax.Arn
+      NodeType: 'dax.t2.small'
+      ReplicationFactor: 1
+      SecurityGroupIds:
+        - !Ref HelloSg
+      SubnetGroupName: !Ref HelloSubnetGroup
 
-  #===== Subnets
-  HelloSubnetA:
-    Type: AWS::EC2::Subnet
-    Properties:
-      AvailabilityZone: !FindInMap [ Application, Settings, AvailabilityZone ]
-      CidrBlock: !FindInMap [ Network, Settings, SubnetCidrBlockA ]
-      MapPublicIpOnLaunch: true
-      Tags:
-        - Key: 'Name'
-          Value: !Sub
-            - 'Hello subnet public ${UniqueSuffix}'
-            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
-      VpcId: !Ref HelloVpcA
+  #===== Lambda
+  HelloEventSource:
+    DependsOn: HelloDdbTable
+    Type: AWS::Lambda::EventSourceMapping
+    Properties: 
+      BatchSize: 1
+      Enabled: true
+      EventSourceArn: !GetAtt HelloDdbTable.StreamArn
+      FunctionName: !Ref HelloLambda
+      StartingPosition: 'LATEST'
 
-  HelloSubnetB:
-    Type: AWS::EC2::Subnet
-    Properties:
-      AvailabilityZone: !FindInMap [ Application, Settings, AvailabilityZone ]
-      CidrBlock: !FindInMap [ Network, Settings, SubnetCidrBlockB ]
-      # MapPublicIpOnLaunch: true
-      Tags:
-        - Key: 'Name'
-          Value: !Sub
-            - 'Hello subnet B ${UniqueSuffix}'
-            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
-      VpcId: !Ref HelloVpcB
-
-  #===== Route tables
-  HelloRtA:
-    Type: AWS::EC2::RouteTable
-    Properties:
-      Tags: 
-        - Key: 'Name'
-          Value: !Sub
-            - 'Hello RT A ${UniqueSuffix}'
-            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
-      VpcId: !Ref HelloVpcA
-
-  HelloRtB:
-    Type: AWS::EC2::RouteTable
-    Properties:
-      Tags: 
-        - Key: 'Name'
-          Value: !Sub
-            - 'Hello RT B ${UniqueSuffix}'
-            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
-      VpcId: !Ref HelloVpcB
-
-  HelloRouteIPv4A:
-    Type: AWS::EC2::Route
-    Properties:
-      DestinationCidrBlock: '0.0.0.0/0'
-      GatewayId: !Ref HelloIgwA
-      RouteTableId: !Ref HelloRtA 
-
-  # HelloRouteIPv4B:
-  #   Type: AWS::EC2::Route
-  #   Properties:
-  #     DestinationCidrBlock: '0.0.0.0/0'
-  #     GatewayId: !Ref HelloIgwB
-  #     RouteTableId: !Ref HelloRtB 
-
-  HelloRouteIPv4APeering:
-    Type: AWS::EC2::Route
-    Properties:
-      DestinationCidrBlock: !FindInMap [ Network, Settings, SubnetCidrBlockB ]
-      VpcPeeringConnectionId: !Ref HelloPeering
-      RouteTableId: !Ref HelloRtA
-
-  HelloRouteIPv4BPeering:
-    Type: AWS::EC2::Route
-    Properties:
-      DestinationCidrBlock: !FindInMap [ Network, Settings, SubnetCidrBlockA ]
-      VpcPeeringConnectionId: !Ref HelloPeering
-      RouteTableId: !Ref HelloRtB 
-
-  HelloRtAssociateA:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      RouteTableId: !Ref HelloRtA
-      SubnetId: !Ref HelloSubnetA
-
-  HelloRtAssociateB:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      RouteTableId: !Ref HelloRtB 
-      SubnetId: !Ref HelloSubnetB
+  HelloLambda:
+    Type: AWS::Lambda::Function
+    Properties: 
+      Code: 
+        ZipFile: |
+          exports.handler = (event, _) => { 
+            console.log("DDB EVENT", event);
+            return 0;
+          }
+      FunctionName: !Sub
+        - 'hello-lambda-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+      Handler: 'index.handler'
+      Role: !GetAtt HelloRoleLambdaExecution.Arn
+      Runtime: 'nodejs12.x'
 
   #===== IAM
-  HelloRole:
+  HelloRoleLambdaExecution:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          Effect: 'Allow'
+          Principal: 
+            Service: 
+              - 'lambda.amazonaws.com'
+          Action: 
+            - 'sts:AssumeRole'
+      ManagedPolicyArns: 
+        - 'arn:aws:iam::aws:policy/service-role/AWSLambdaDynamoDBExecutionRole'
+      RoleName: !Sub
+        - 'hello-role-le-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+
+  HelloRoleDax:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          Effect: 'Allow'
+          Principal: 
+            Service: 
+              - 'dax.amazonaws.com'
+          Action: 
+            - 'sts:AssumeRole'
+      RoleName: !Sub
+        - 'hello-role-dax-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+
+  HelloRoleEC2:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -218,48 +147,133 @@ Resources:
               - 'ec2.amazonaws.com'
           Action: 
             - 'sts:AssumeRole'
-      Description: 'Hello Role'
       ManagedPolicyArns: 
         - 'arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore'
       RoleName: !Sub
-        - 'hello-role-${UniqueSuffix}'
+        - 'hello-role-ec2-${UniqueSuffix}'
         - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
 
   HelloInstanceProfile:
     Type: AWS::IAM::InstanceProfile
     Properties: 
       InstanceProfileName: !Sub
-        - 'hello-instance-profile-${UniqueSuffix}'
+        - 'hello-ip-${UniqueSuffix}'
         - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
       Roles: 
-        - !Ref HelloRole
+        - !Ref HelloRoleEC2
 
-  #===== TGW
-  HelloVpnConnection:
-    Type: AWS::EC2::VPNConnection
+  #===== VPC
+  HelloVpc:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !FindInMap [ Network, Settings, VpcCidrBlock ]
+      Tags:
+        - Key: 'Name'
+          Value: !Sub
+            - 'Hello VPC ${UniqueSuffix}'
+            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+
+  HelloIgw:
+    Type: AWS::EC2::InternetGateway
+
+  HelloVpcIgwAttach:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref HelloIgw 
+      VpcId: !Ref HelloVpc
+
+  HelloSg: 
+    Type: AWS::EC2::SecurityGroup
     Properties: 
-      CustomerGatewayId: !Ref HelloCGW
-      TransitGatewayId: !Ref HelloTGW
-      Type: 'ipsec.1'
+      GroupDescription: 'Open to IPv4 traffic'
+      GroupName: !Sub
+        - 'Hello SG ${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+      SecurityGroupIngress: 
+        CidrIp: '0.0.0.0/0'
+        IpProtocol: -1
+      VpcId: !Ref HelloVpc
 
-  HelloTGW:
-    Type: AWS::EC2::TransitGateway
+  #===== Subnet
+  HelloSubnetA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !FindInMap [ Application, Settings, AvailabilityZoneA ]
+      CidrBlock: !FindInMap [ Network, Settings, SubnetCidrBlockA ]
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: 'Name'
+          Value: !Sub
+            - 'Hello subnet A ${UniqueSuffix}'
+            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+      VpcId: !Ref HelloVpc
 
-  HelloCGW:
-    Type: AWS::EC2::CustomerGateway
+  HelloSubnetB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !FindInMap [ Application, Settings, AvailabilityZoneB ]
+      CidrBlock: !FindInMap [ Network, Settings, SubnetCidrBlockB ]
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: 'Name'
+          Value: !Sub
+            - 'Hello subnet B ${UniqueSuffix}'
+            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+      VpcId: !Ref HelloVpc
+
+  HelloSubnetGroup:
+    Type: AWS::DAX::SubnetGroup
     Properties: 
-      BgpAsn: 65000
-
-      ####### PARAMETERIZE THIS BEFORE COMMIT
-      IpAddress: 
-      #######
-      
-      Type: 'ipsec.1'
-
-  HelloTGWAttach:
-    Type: AWS::EC2::TransitGatewayAttachment
-    Properties: 
+      Description: "Subnet group for DAX"
+      SubnetGroupName: !Sub
+        - 'hello-sg-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
       SubnetIds: 
         - !Ref HelloSubnetA
-      TransitGatewayId: !Ref HelloTGW
-      VpcId: !Ref HelloVpcA
+        - !Ref HelloSubnetB
+
+  #==== RT
+  HelloRt:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      Tags: 
+        - Key: 'Name'
+          Value: !Sub
+            - 'Hello RT ${UniqueSuffix}'
+            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+      VpcId: !Ref HelloVpc
+
+  HelloRouteIPv4:
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: '0.0.0.0/0'
+      GatewayId: !Ref HelloIgw 
+      RouteTableId: !Ref HelloRt 
+
+  HelloRtAssociateA:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref HelloRt
+      SubnetId: !Ref HelloSubnetA
+
+  HelloRtAssociateB:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref HelloRt
+      SubnetId: !Ref HelloSubnetB
+
+  #===== EC2
+  HelloInstance: 
+    Type: AWS::EC2::Instance
+    Properties: 
+      IamInstanceProfile: !Ref HelloInstanceProfile
+      ImageId: !FindInMap [ Instances, Settings, ImageId ]
+      InstanceType: !FindInMap [ Instances, Settings, InstanceType ]
+      SecurityGroupIds:
+        - !Ref HelloSg
+      SubnetId: !Ref HelloSubnetA
+      Tags: 
+        - Key: 'Name'
+          Value: !Sub
+            - 'Hello Instance ${UniqueSuffix}'
+            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]

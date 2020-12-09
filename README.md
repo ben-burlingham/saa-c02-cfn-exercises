@@ -1,29 +1,43 @@
-# Welcome 
+# Hello Cloud Lab
 
-Cloud Lab
-Goal: Dependency-free minimalist implementations. Pattern reuse in further evolutions. Intentionally vague to encourage research.
-complete in serial
-policies often wide-open; refinement left as an exercise for the student.
+Welcome! 
 
+This repository is a collection of "Hello World" CloudFormation templates with self-perform exercises.
 
-Prereqs: `iamadmin-general` account
+To start, create an IAM administrative user named `iamadmin-general`.
 
-Mappings used for settings. Occasional parameter.
+## The templates...
+- have no dependencies
+- are often very simplistic
+- increase in complexity
+- reuse patterns from earlier exercises
 
-https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/template-anatomy.html
+## The exercises...
+- are intentionally vague to encourage research
+- are intentionally unrefined to encourage experimentation
 
-https://docs.aws.amazon.com/cli/latest/reference/cloudformation/create-stack.html
-https://docs.aws.amazon.com/cli/latest/reference/cloudformation/update-stack.html
+## Disclaimers
+- Most of these can be done on free tier. They are very lightweight and should incur very little billing, but please keep an eye on it.
+- These are not production ready.
+- These are not production ready.
+
+## Getting started
+
+Create an IAM administrative user named `iamadmin-general`.
+
+- [Template Anatomy](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/template-anatomy.html)
+- [CLI create-stack](https://docs.aws.amazon.com/cli/latest/reference/cloudformation/create-stack.html)
+- [CLI update-stack](https://docs.aws.amazon.com/cli/latest/reference/cloudformation/update-stack.html)
+
+An example of a common CLI call:
+  ```
   aws cloudformation create-stack 
     --profile iamadmin-general 
     --capabilities CAPABILITY_NAMED_IAM 
     --template-body file://eX/eX.yml 
     --stack-name helloY
+  ```
 
-Study topics:
-- Which services are region/ha resilient
-- Adrian's templates
-- https://github.com/alozano-77/AWS-SAA-C02-Course/tree/master/Learning-Aids
 
 
 ==================== BACKLOG
@@ -34,17 +48,20 @@ E09 ADD KMS ALIAS
 E18 R53 (DEPENDENT ON DOMAIN)
 E19 CFN (DEPENDENT ON DOMAIN)
 E20 KEYNAME PARAMETER KeyName
-E21 
-E22 VPN
-E23 ATHENA
-E24 DDB
+E22 DDB
+E23 ATHENA + ELASTICACHE
 
-Global accelerator
+CFN global accelerator
 Lambda@Edge
 IOPS
 VPC endpoint services
+Elastic beanstalk
+Directory service
+FSx for Lustre
+WAF
 
 ===================== FINAL BLOG
+Host site in S3 + CF, host site on Amplify
 Use LucidChart diagrams? UML?
 rename with numbers but more specific topic names?
 Link "create a FOO" to the foo docs in all readme

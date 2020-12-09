@@ -23,7 +23,7 @@ Create a VPC with an IPv6 VPCCidrBlock, IGW, a route table, and IPv6 subnet.
 
 ## Exercise 2
 Create an EC2 instance and an instance profile. Associate an Elastic IP to the instance.
-- Refer to previous evolution(s) if necessary. 
+- Refer to previous exercise(s) if necessary. 
 - [Why EIP](https://serverfault.com/questions/846387)
 - [EIP association](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-eip-association.html)
 
