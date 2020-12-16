@@ -1,4 +1,5 @@
 # Topics
+- Spot fleets
 - Kinesis
 - Event bridge
 - Step functions

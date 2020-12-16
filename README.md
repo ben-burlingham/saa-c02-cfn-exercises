@@ -38,27 +38,33 @@ An example of a common CLI call:
     --stack-name helloY
   ```
 
-
-
 ==================== BACKLOG
 E04 MAPPINGS, REWRITE
 E05 MAPPINGS, REWRITE
 E07 MAPPINGS
 E09 ADD KMS ALIAS
 E18 R53 (DEPENDENT ON DOMAIN)
-E19 CFN (DEPENDENT ON DOMAIN)
+E19 CFN (DEPENDENT ON DOMAIN) + Lambda@Edge?
 E20 KEYNAME PARAMETER KeyName
-E22 DDB
 E23 ATHENA + ELASTICACHE
 
-CFN global accelerator
-Lambda@Edge
 IOPS
-VPC endpoint services
-Elastic beanstalk
+global accelerator
 Directory service
 FSx for Lustre
 WAF
+Aurora
+Aurora serverless
+SES
+Placement groups
+RDS backups
+Storage gateway
+S3 CRR
+Cloud HSM
+RDS IAM based authentication
+AWS inspector
+DDB ApplicationAutoScaling
+Session manager into private EC2
 
 ===================== FINAL BLOG
 Host site in S3 + CF, host site on Amplify

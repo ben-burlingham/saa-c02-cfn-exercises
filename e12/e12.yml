@@ -82,7 +82,6 @@ Resources:
     Type: AWS::AutoScaling::LaunchConfiguration
     Properties: 
       AssociatePublicIpAddress: true
-      IamInstanceProfile: 'arn:aws:iam::704560105568:instance-profile/ecsInstanceRole'
       IamInstanceProfile: !Ref HelloInstanceProfile
       ImageId: !FindInMap [ Instances, Settings, ImageId ]
       InstanceType: !FindInMap [ Instances, Settings, InstanceType ]

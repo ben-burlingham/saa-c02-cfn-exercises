@@ -28,6 +28,7 @@ health check
 failover hosted
 subdomain?
 hosted zone query logging?
+private hosted zone?
 
 CFN (DEPENDENT ON DOMAIN)
 cloudfront distribution
