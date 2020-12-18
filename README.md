@@ -43,15 +43,17 @@ E04 MAPPINGS, REWRITE
 E05 MAPPINGS, REWRITE
 E07 MAPPINGS
 E09 ADD KMS ALIAS
-E18 R53 (DEPENDENT ON DOMAIN)
-E19 CFN (DEPENDENT ON DOMAIN) + Lambda@Edge?
+E18 R53 + ACM
+E19 CFN + Lambda@Edge?
 E20 KEYNAME PARAMETER KeyName
 E23 ATHENA + ELASTICACHE
+E24 COGNITO
+E25 CodeBuild + CodeDeploy
+E26 ELASTIC BEANSTALK
 
 IOPS
 global accelerator
 Directory service
-FSx for Lustre
 WAF
 Aurora
 Aurora serverless
@@ -62,14 +64,5 @@ Storage gateway
 S3 CRR
 Cloud HSM
 RDS IAM based authentication
-AWS inspector
 DDB ApplicationAutoScaling
 Session manager into private EC2
-
-===================== FINAL BLOG
-Host site in S3 + CF, host site on Amplify
-Use LucidChart diagrams? UML?
-rename with numbers but more specific topic names?
-Link "create a FOO" to the foo docs in all readme
-refine roles and permissions
-Part of the "Hello Cloudformation" series (tags? markup?)

@@ -115,7 +115,7 @@ Resources:
     Properties: 
       Code: 
         ZipFile: |
-          exports.handler = async (evt, ctx) => { 
+          exports.handler = async (event, context) => { 
             console.log("Hello Lambda 0");
             return "Hello Lambda 0" 
           }
@@ -131,7 +131,7 @@ Resources:
     Properties: 
       Code: 
         ZipFile: |
-          exports.handler = async (evt, ctx) => { 
+          exports.handler = async (event, context) => { 
             console.log("Hello Lambda 1");
             return "Hello Lambda 1" 
           }

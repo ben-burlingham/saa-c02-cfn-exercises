@@ -1,0 +1,124 @@
+Parameters: 
+  NewUserPhone: 
+    AllowedPattern: ^\+\d{10,}$
+    Type: String
+    Description: Phone number of new user
+  
+  NewUserName: 
+    AllowedPattern: ^\w{4,}$
+    Type: String
+    Description: Name of new user
+
+Mappings:
+  Application:
+    Settings:
+      UniqueSuffix: 'e24'
+
+Resources: 
+  #===== User pool
+  HelloUserPool:
+    Type: AWS::Cognito::UserPool
+    Properties: 
+      LambdaConfig: 
+        CustomMessage: !GetAtt HelloLambda.Arn
+      SmsConfiguration: 
+        SnsCallerArn: !GetAtt HelloRoleSns.Arn
+      UserPoolName: !Sub
+        - 'hello-user-pool-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+
+  HelloUserPoolUser:
+    DependsOn: HelloLambda
+    Type: AWS::Cognito::UserPoolUser
+    Properties: 
+      UserAttributes:
+        - Name: phone_number
+          Value: !Ref NewUserPhone
+      Username: !Ref NewUserName
+      UserPoolId: !Ref HelloUserPool
+
+  HelloUserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties: 
+      ClientName: !Sub
+        - 'hello-app-client-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+      ExplicitAuthFlows: 
+        - 'ALLOW_USER_PASSWORD_AUTH'
+        - 'ALLOW_REFRESH_TOKEN_AUTH'
+      GenerateSecret: false
+      UserPoolId: !Ref HelloUserPool
+
+  #===== Identity pool
+  HelloIdentityPool:
+    Type: AWS::Cognito::IdentityPool
+    Properties: 
+      AllowUnauthenticatedIdentities: false
+      IdentityPoolName: !Sub
+        - 'hello-identity-pool-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+
+  #===== Lambda
+  HelloLambda:
+    Type: AWS::Lambda::Function
+    Properties: 
+      Code: 
+        ZipFile: |
+          exports.handler = (event, context, callback) => {
+            event.response.smsMessage = "It's you, {username}! Temporary password: {####}"
+            callback(null, event);
+          }
+      FunctionName: !Sub
+        - 'hello-lambda-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+      Handler: 'index.handler'
+      Role: !GetAtt HelloRoleLambdaExecution.Arn
+      Runtime: 'nodejs12.x'
+
+  HelloLambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref HelloLambda
+      Principal: 'cognito-idp.amazonaws.com'
+
+  #===== IAM
+  HelloRoleSns:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument: 
+        Statement: 
+          Effect: 'Allow'
+          Principal:  
+            Service: 
+              - 'cognito-idp.amazonaws.com' 
+          Action: 
+            - 'sts:AssumeRole'
+      Policies:
+        - PolicyName: 'hello-user-pool-policy'
+          PolicyDocument:
+            Statement:
+              - Effect: 'Allow'
+                Action: 
+                  - 'sns:Publish'
+                Resource: '*'
+      RoleName: !Sub
+        - 'hello-role-sns-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+
+  HelloRoleLambdaExecution:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          Effect: 'Allow'
+          Principal: 
+            Service: 
+              - 'lambda.amazonaws.com'
+          Action: 
+            - 'sts:AssumeRole'
+      ManagedPolicyArns: 
+        - 'arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
+      RoleName: !Sub
+        - 'hello-role-le-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
