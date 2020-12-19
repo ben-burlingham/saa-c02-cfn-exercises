@@ -48,7 +48,7 @@ Resources:
       IamInstanceProfile: !Ref HelloInstanceProfile
       ImageId: !FindInMap [ Instances, Settings, ImageId ]
       InstanceType: !FindInMap [ Instances, Settings, InstanceType ]
-      KeyName: 'IAMADMIN_GENERAL'
+      KeyName: !Ref KeyPairName
       SecurityGroupIds:
         - !Ref HelloSg
       SubnetId: !Ref HelloSubnetPrivate

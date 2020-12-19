@@ -1,11 +1,13 @@
+Parameters: 
+  BucketSuffix: 
+    AllowedPattern: ^[\d\w]{5,}$
+    Type: String
+    Description: Identifier to provide uniqueness on all S3 buckets
+
 Mappings:
-  Network:
-    Settings:
-      SubnetCidrBlock0: '10.16.0.0/24'
-      VpcCidrBlock: '10.16.0.0/16'
   S3:
     Settings:
-      Document: 'hello.html'
+      Document: 'index.html'
   Application:
     Settings:
       AvailabilityZone: 'us-east-1a'
@@ -13,23 +15,32 @@ Mappings:
 
 Resources:
   #===== S3
-  HelloBucket: 
+  HelloBucketA: 
     Type: AWS::S3::Bucket
     Properties: 
-
-      ###### FIX THIS
-      BucketName: 'hello-bucket-burlingham'
-      ######
-      
+      BucketName: !Sub 
+        - 'hello-${Suffix}-a'
+        - Suffix: !Ref BucketSuffix
       WebsiteConfiguration:  
         # Upload these manually.
         ErrorDocument: !FindInMap [ S3, Settings, Document ]
         IndexDocument: !FindInMap [ S3, Settings, Document ]
 
-  HelloBucketPolicy: 
+  HelloBucketB: 
+    Type: AWS::S3::Bucket
+    Properties: 
+      BucketName: !Sub 
+        - 'hello-${Suffix}-b'
+        - Suffix: !Ref BucketSuffix
+      WebsiteConfiguration:  
+        # Upload these manually.
+        ErrorDocument: !FindInMap [ S3, Settings, Document ]
+        IndexDocument: !FindInMap [ S3, Settings, Document ]
+
+  HelloBucketPolicyA: 
     Type: AWS::S3::BucketPolicy
     Properties: 
-      Bucket: !Ref HelloBucket
+      Bucket: !Ref HelloBucketA
       PolicyDocument: 
         Statement: 
           Principal: '*'
@@ -37,34 +48,134 @@ Resources:
           Effect: 'Allow'
           Resource: !Sub
             - arn:aws:s3:::${TargetBucketName}/*
-            - TargetBucketName: !Ref HelloBucket
+            - TargetBucketName: !Ref HelloBucketA
+
+  HelloBucketPolicyB: 
+    Type: AWS::S3::BucketPolicy
+    Properties: 
+      Bucket: !Ref HelloBucketB
+      PolicyDocument: 
+        Statement: 
+          Principal: '*'
+          Action: '*'
+          Effect: 'Allow'
+          Resource: !Sub
+            - arn:aws:s3:::${TargetBucketName}/*
+            - TargetBucketName: !Ref HelloBucketB
   
   #===== Cloudfront
   HelloDistribution:
     Type: AWS::CloudFront::Distribution
     Properties: 
       DistributionConfig: 
-        # Comment: String
         DefaultCacheBehavior: 
-          # CachePolicyId: String
-          OriginRequestPolicyId: String
-          RealtimeLogConfigArn: String
-          SmoothStreaming: Boolean
-          TargetOriginId: String
+          # No caching
+          CachePolicyId: '4135ea2d-6df8-44a3-9df3-4b5a84be39ad'
+          # Minimized caching
+          # CachePolicyId: '658327ea-f89d-4fab-a63d-7e88639e58f6'
+          LambdaFunctionAssociations:
+            - EventType: 'viewer-response'
+              LambdaFunctionARN: !Ref HelloLambdaVersion
+          TargetOriginId: 'hello-origin-group'
           ViewerProtocolPolicy: 'allow-all'
-        # DefaultRootObject: 'index.html' 
-        DefaultRootObject: 
-        # OriginGroups: 
-        #   OriginGroups
+        DefaultRootObject: !FindInMap [ S3, Settings, Document ]
+        Enabled: true
+        OriginGroups:
+          Quantity: 1
+          Items:
+            - FailoverCriteria: 
+                StatusCodes:
+                  Items: 
+                    - 403
+                  Quantity: 1
+              Id: 'hello-origin-group'
+              Members: 
+                Items:
+                  - OriginId: 'hello-origin-a'
+                  - OriginId: 'hello-origin-b'
+                Quantity: 2
         Origins: 
-          - CustomOriginConfig: 
-              # HTTPPort: '80'  
-              OriginKeepaliveTimeout: Integer
-              OriginProtocolPolicy: String
-              OriginReadTimeout: Integer
-              OriginSSLProtocols: 
-                - String
-            DomainName: String
-            Id: String
-            OriginCustomHeaders: 
-              - OriginCustomHeader
+          - CustomOriginConfig:
+              HTTPPort: 80
+              OriginProtocolPolicy: 'http-only'
+            DomainName: !GetAtt HelloBucketA.DomainName
+            Id: 'hello-origin-a'
+          - CustomOriginConfig:
+              HTTPPort: 80
+              OriginProtocolPolicy: 'http-only'
+            DomainName: !GetAtt HelloBucketB.DomainName
+            Id: 'hello-origin-b'
+        WebACLId: !GetAtt HelloWaf.Arn
+
+  #===== WAF
+  HelloWaf:
+    Type: AWS::WAFv2::WebACL
+    Properties: 
+      DefaultAction: 
+        Allow: {}
+      Rules: 
+        - Action: 
+            Block: {}
+          Name: 'hello-waf-rule'
+          Priority: 0
+          Statement: 
+            ByteMatchStatement: 
+              FieldToMatch: 
+                SingleHeader: 'User-Agent'
+              PositionalConstraint: 'EXACTLY'
+              SearchString: 'BadBot'
+              TextTransformations: 
+                - Priority: 0
+                  Type: NONE 
+          VisibilityConfig: 
+            CloudWatchMetricsEnabled: false
+            MetricName: 'foo2'
+            SampledRequestsEnabled: false
+      Scope: 'CLOUDFRONT'
+      VisibilityConfig: 
+        CloudWatchMetricsEnabled: false
+        MetricName: 'foo1'
+        SampledRequestsEnabled: false
+
+  #===== Lambda
+  HelloLambda:
+    Type: AWS::Lambda::Function
+    Properties: 
+      Code: 
+        ZipFile: |
+          exports.handler = (event, context, callback) => {
+            const response = event.Records[0].cf.response;
+            response.headers['x-hello'] = [{key: 'x-hello', value: 'GoodBot'}];
+            callback(null, response);
+          }
+      FunctionName: !Sub
+        - 'hello-lambda-${UniqueSuffix}-3'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+      Handler: 'index.handler'
+      Role: !GetAtt HelloRoleLambdaExecution.Arn
+      Runtime: 'nodejs12.x'
+
+  HelloLambdaVersion:
+    Type: AWS::Lambda::Version
+    Properties:
+      FunctionName: !Ref HelloLambda
+      Description: v1
+
+  #===== IAM
+  HelloRoleLambdaExecution:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          Effect: 'Allow'
+          Principal: 
+            Service: 
+              - 'lambda.amazonaws.com'
+              - 'edgelambda.amazonaws.com'
+          Action: 
+            - 'sts:AssumeRole'
+      ManagedPolicyArns: 
+        - 'arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
+      RoleName: !Sub
+        - 'hello-role-le-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]

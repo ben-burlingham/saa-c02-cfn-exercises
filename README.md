@@ -39,30 +39,26 @@ An example of a common CLI call:
   ```
 
 ==================== BACKLOG
+E01 ADD CROSS-REGION REPLICATION
 E04 MAPPINGS, REWRITE
 E05 MAPPINGS, REWRITE
 E07 MAPPINGS
 E09 ADD KMS ALIAS
 E18 R53 + ACM
-E19 CFN + Lambda@Edge?
-E20 KEYNAME PARAMETER KeyName
 E23 ATHENA + ELASTICACHE
-E24 COGNITO
 E25 CodeBuild + CodeDeploy
 E26 ELASTIC BEANSTALK
 
-IOPS
 global accelerator
 Directory service
-WAF
 Aurora
 Aurora serverless
 SES
 Placement groups
 RDS backups
-Storage gateway
-S3 CRR
-Cloud HSM
 RDS IAM based authentication
+Cloud HSM
 DDB ApplicationAutoScaling
 Session manager into private EC2
+S3CF OAI
+S3 Signed URLs
