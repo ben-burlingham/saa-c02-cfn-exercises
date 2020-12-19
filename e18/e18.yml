@@ -1,9 +1,13 @@
-# Parameters: 
-#   DomainName: 
-#     Type: String
-#     Description: Fully qualified domain name
+Parameters: 
+  DomainName: 
+    Type: String
+    Description: Apex domain name.
 
 Mappings:
+  Network:
+    Settings:
+      SubnetCidrBlock: '10.16.0.0/24'
+      VpcCidrBlock: '10.16.0.0/16'
   Instances:
     Settings:
       ImageId: 'ami-04bf6dcdc9ab498ca'
@@ -14,22 +18,81 @@ Mappings:
       UniqueSuffix: 'e18'
 
 Resources:
-  #===== EC2
-  HelloInstanceA: 
-    Type: AWS::EC2::Instance
-    Properties: 
-      AvailabilityZone: !FindInMap [ Application, Settings, AvailabilityZone ]
-      IamInstanceProfile: !Ref HelloInstanceProfile
-      ImageId: !FindInMap [ Instances, Settings, ImageId ]
-      InstanceType: !FindInMap [ Instances, Settings, InstanceType ]
-      Tags: 
+  #====== VPC, IGW, SG
+  HelloVpc:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !FindInMap [ Network, Settings, VpcCidrBlock ]
+      Tags:
         - Key: 'Name'
           Value: !Sub
-            - 'Hello Instance A ${UniqueSuffix}'
+            - 'Hello public VPC ${UniqueSuffix}'
             - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
 
-  HelloInstanceB: 
+  HelloIgw:
+    Type: AWS::EC2::InternetGateway
+      
+  HelloVpcIgwAttach:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref HelloIgw 
+      VpcId: !Ref HelloVpc
+
+  HelloSg: 
+    Type: AWS::EC2::SecurityGroup
+    Properties: 
+      GroupDescription: 'Open to IPv4 traffic'
+      GroupName: !Sub
+        - 'Hello SG ${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+      SecurityGroupIngress: 
+        CidrIp: '0.0.0.0/0'
+        IpProtocol: -1
+      VpcId: !Ref HelloVpc 
+
+  #===== Subnet + route table
+  HelloSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !FindInMap [ Application, Settings, AvailabilityZone ]
+      CidrBlock: !FindInMap [ Network, Settings, SubnetCidrBlock ]
+      MapPublicIpOnLaunch: true
+      Tags: 
+        - Key: 'Name'
+          Value: !Sub
+            - 'Hello subnet ${UniqueSuffix}'
+            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+      VpcId: !Ref HelloVpc
+
+  HelloRt:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      Tags: 
+        - Key: 'Name'
+          Value: !Sub
+            - 'Hello RT ${UniqueSuffix}'
+            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+      VpcId: !Ref HelloVpc
+
+  HelloRouteIPv4:
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: '0.0.0.0/0'
+      GatewayId: !Ref HelloIgw 
+      RouteTableId: !Ref HelloRt   
+
+  HelloRtAssociate:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref HelloRt 
+      SubnetId: !Ref HelloSubnet
+
+  #===== EC2
+  HelloInstancePrimary: 
     Type: AWS::EC2::Instance
+    CreationPolicy:
+      ResourceSignal:
+        Timeout: PT2M
     Properties: 
       AvailabilityZone: !FindInMap [ Application, Settings, AvailabilityZone ]
       IamInstanceProfile: !Ref HelloInstanceProfile
@@ -38,8 +101,38 @@ Resources:
       Tags: 
         - Key: 'Name'
           Value: !Sub
-            - 'Hello Instance B ${UniqueSuffix}'
+            - 'Hello Primary ${UniqueSuffix}'
             - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash -xe
+          sudo yum install -y httpd
+          sudo systemctl start httpd
+          sudo echo "<html><h1>Hello Instance Primary</h1></html>" > /var/www/html/index.html
+          /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource HelloInstancePrimary --region ${AWS::Region}
+
+  HelloInstanceSecondary: 
+    Type: AWS::EC2::Instance
+    CreationPolicy:
+      ResourceSignal:
+        Timeout: PT2M
+    Properties: 
+      AvailabilityZone: !FindInMap [ Application, Settings, AvailabilityZone ]
+      IamInstanceProfile: !Ref HelloInstanceProfile
+      ImageId: !FindInMap [ Instances, Settings, ImageId ]
+      InstanceType: !FindInMap [ Instances, Settings, InstanceType ]
+      Tags: 
+        - Key: 'Name'
+          Value: !Sub
+            - 'Hello Secondary ${UniqueSuffix}'
+            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash -xe
+          sudo yum install -y httpd
+          sudo systemctl start httpd
+          sudo echo "<html><h1>Hello Instance Secondary</h1></html>" > /var/www/html/index.html
+          /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource HelloInstanceSecondary --region ${AWS::Region}
 
   #===== IAM
   HelloRole:
@@ -69,36 +162,64 @@ Resources:
         - !Ref HelloRole
 
   #===== R53
-  HelloRecord:
+  HelloHostedZone:
+    Type: AWS::Route53::HostedZone
+    Properties: 
+      Name: !Ref DomainName
+
+  HelloRecordPrimary:
     Type: AWS::Route53::RecordSet
     Properties: 
-      Failover: String
-      HealthCheckId: !Ref HelloHealthCheckA
+      Failover: 'PRIMARY'
+      HealthCheckId: !Ref HelloHealthCheckPrimary
       HostedZoneId: !Ref HelloHostedZone
-      Name: !Sub
-        - 'hello-record-ec2A-${UniqueSuffix}'
-        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+      Name: !Ref DomainName
       ResourceRecords: 
-        - String
-      SetIdentifier: String
+        - !GetAtt HelloInstancePrimary.PublicIp
+      SetIdentifier: 'hello-recordset-primary'
       TTL: '60'
       Type: 'A'
 
+  HelloRecordSecondary:
+    Type: AWS::Route53::RecordSet
+    Properties: 
+      Failover: 'SECONDARY'
+      HealthCheckId: !Ref HelloHealthCheckSecondary
+      HostedZoneId: !Ref HelloHostedZone
+      Name: !Ref DomainName
+      ResourceRecords: 
+        - !GetAtt HelloInstanceSecondary.PublicIp
+      SetIdentifier: 'hello-recordset-secondary'
+      TTL: '60'
+      Type: 'A'
 
-  #===== Health checks
-  # HelloHealthCheckA:
-  #   Type: AWS::Route53::HealthCheck
-  #   Properties: 
-  #     HealthCheckConfig:
-  #       IPAddress: 192.0.2.44
-  #       Port: 80
-  #       Type: HTTP
-  #       ResourcePath: '/'
-  #       FullyQualifiedDomainName: !Ref DomainName
-  #       RequestInterval: 30
-  #       FailureThreshold: 3
+  # ===== Health checks
+  HelloHealthCheckPrimary:
+    Type: AWS::Route53::HealthCheck
+    Properties: 
+      HealthCheckConfig:
+        FailureThreshold: 3
+        FullyQualifiedDomainName: !Ref DomainName
+        IPAddress: !GetAtt HelloInstancePrimary.PublicIp
+        Port: 80
+        RequestInterval: 30
+        ResourcePath: '/'
+        Type: HTTP
+      HealthCheckTags:
+        - Key: 'Name'
+          Value: 'hello-health-check-primary'
   
-  # HelloHostedZone:
-  #   Type: AWS::Route53::HostedZone
-  #   Properties: 
-  #     Name: !Ref DomainName
+  HelloHealthCheckSecondary:
+    Type: AWS::Route53::HealthCheck
+    Properties: 
+      HealthCheckConfig:
+        FailureThreshold: 3
+        FullyQualifiedDomainName: !Ref DomainName
+        IPAddress: !GetAtt HelloInstanceSecondary.PublicIp
+        Port: 80
+        RequestInterval: 30
+        ResourcePath: '/'
+        Type: HTTP
+      HealthCheckTags:
+        - Key: 'Name'
+          Value: 'hello-health-check-secondary'

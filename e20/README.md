@@ -38,7 +38,7 @@ Add a VPC interface endpoint and apply a security group for it.
 
 **Verify:**
 - Confirm no public internet connectivity in private EC2 instance: `ping www.google.com`
-- Confirm access to EC2 service in private EC2 isntance: `aws ec2 describe-vpcs --region us-east-1 --endpoint-url https://regional-endpoint-url` 
+- Confirm access to EC2 service in private EC2 instance: `aws ec2 describe-vpcs --region us-east-1 --endpoint-url https://regional-endpoint-url` 
 
 ---
 

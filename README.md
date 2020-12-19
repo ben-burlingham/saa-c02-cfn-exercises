@@ -44,7 +44,8 @@ E04 MAPPINGS, REWRITE
 E05 MAPPINGS, REWRITE
 E07 MAPPINGS
 E09 ADD KMS ALIAS
-E18 R53 + ACM
+E18 CHECK NODATA/REFUSED ON CSP
+E20 ADD SESSIONMANAGER INTO PRIVATE EC2 https://aws.amazon.com/premiumsupport/knowledge-center/ec2-systems-manager-vpc-endpoints/
 E23 ATHENA + ELASTICACHE
 E25 CodeBuild + CodeDeploy
 E26 ELASTIC BEANSTALK
@@ -59,6 +60,5 @@ RDS backups
 RDS IAM based authentication
 Cloud HSM
 DDB ApplicationAutoScaling
-Session manager into private EC2
 S3CF OAI
 S3 Signed URLs
