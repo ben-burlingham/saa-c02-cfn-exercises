@@ -39,7 +39,7 @@ Create a Route53 Public Hosted Zone. Use its nameservers for the domain (see "Pr
 - [DNS traversal checker](http://dns.squish.net/)
 
 **Verify:** 
-- Using the traversal checker, confirm a `NODATA` or `Refused` response. An `NXDOMAIN` response is unacceptable.
+- Using the traversal checker, confirm a `NODATA` response. An `NXDOMAIN` response is unacceptable.
 
 ---
 

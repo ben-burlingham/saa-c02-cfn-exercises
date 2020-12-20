@@ -1,0 +1,106 @@
+Parameters: 
+  BucketSuffix: 
+    AllowedPattern: ^[\d\w]{5,}$
+    Type: String
+    Description: Identifier to provide uniqueness on S3 buckets
+
+Mappings:
+  Application:
+    Settings:
+      UniqueSuffix: 'e25'
+
+Resources:
+  HelloApplication:
+    Type: AWS::ElasticBeanstalk::Application
+    Properties: 
+      ApplicationName: !Sub
+        - 'hello-beanstalk-app-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+
+  HelloEnvironment:
+    Type: AWS::ElasticBeanstalk::Environment
+    Properties: 
+      ApplicationName: !Ref HelloApplication
+      TemplateName: !Ref HelloConfigurationTemplate2
+      Tier: 
+        Name: 'WebServer'
+        Type: 'Standard'
+      VersionLabel: !Ref HelloVersion
+
+  HelloVersion:
+    Type: AWS::ElasticBeanstalk::ApplicationVersion
+    Properties: 
+      ApplicationName: !Ref HelloApplication
+      SourceBundle: 
+        S3Bucket: !Ref HelloBucket
+        S3Key: 'application.zip'
+
+  HelloConfigurationTemplate1:
+    Type: AWS::ElasticBeanstalk::ConfigurationTemplate
+    Properties: 
+      ApplicationName: !Ref HelloApplication
+      OptionSettings: 
+        - Namespace: 'aws:autoscaling:launchconfiguration'
+          OptionName: 'IamInstanceProfile'
+          Value: !Ref HelloInstanceProfile
+      SolutionStackName: '64bit Amazon Linux 2 v5.0.2 running Node.js 12'
+
+  HelloConfigurationTemplate2:
+    Type: AWS::ElasticBeanstalk::ConfigurationTemplate
+    Properties: 
+      ApplicationName: !Ref HelloApplication
+      OptionSettings: 
+        - Namespace: 'aws:elasticbeanstalk:application:environment'
+          OptionName: 'PORT'
+          Value: 3000
+      SourceConfiguration: 
+        ApplicationName: !Ref HelloApplication
+        TemplateName: !Ref HelloConfigurationTemplate1
+
+  #===== S3
+  HelloBucket: 
+    Type: AWS::S3::Bucket
+    Properties: 
+      BucketName: !Sub
+        - 'hello-bucket-${Suffix}'
+        - Suffix: !Ref BucketSuffix 
+
+  HelloBucketPolicy: 
+    Type: AWS::S3::BucketPolicy
+    Properties: 
+      Bucket: !Ref HelloBucket
+      PolicyDocument: 
+        Statement: 
+          Principal: '*'
+          Action: '*'
+          Effect: 'Allow'
+          Resource: !Sub
+            - arn:aws:s3:::${TargetBucketName}/*
+            - TargetBucketName: !Ref HelloBucket
+
+  #===== IAM
+  HelloRoleElasticBeanstalk:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          Effect: 'Allow'
+          Principal: 
+            Service: 
+              - 'ec2.amazonaws.com'
+          Action: 
+            - 'sts:AssumeRole'
+      ManagedPolicyArns: 
+        - 'arn:aws:iam::aws:policy/AWSElasticBeanstalkWebTier'
+      RoleName: !Sub
+        - 'hello-role-eb-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+
+  HelloInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties: 
+      InstanceProfileName: !Sub
+        - 'hello-instance-profile-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+      Roles: 
+        - !Ref HelloRoleElasticBeanstalk

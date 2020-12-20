@@ -2,7 +2,7 @@ Parameters:
   BucketSuffix: 
     AllowedPattern: ^[\d\w]{5,}$
     Type: String
-    Description: Identifier to provide uniqueness on all S3 buckets
+    Description: Identifier to provide uniqueness on S3 buckets
 
 Resources: 
   #===== S3
