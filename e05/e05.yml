@@ -1,0 +1,45 @@
+Parameters: 
+  KeyPairName:
+    Type: String
+    Description: Name of key pair to use for instance SSH
+
+Mappings:
+  Instances:
+    Settings:
+      ImageId: 'ami-04bf6dcdc9ab498ca'
+      InstanceType: 't2.micro'
+  Network:
+    Settings:
+      SubnetCidrBlock: '10.16.0.0/24'
+      VpcCidrBlock: '10.16.0.0/16'
+  Application:
+    Settings:
+      AvailabilityZone: 'us-east-1a'
+      UniqueSuffix: 'e05'
+
+#===== Global Accelerator
+  HelloGlobalAccelerator:
+    Type: AWS::GlobalAccelerator::Accelerator
+    Properties: 
+      Enabled: true
+      Name: !Sub
+        - 'hello-accelerator-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+
+  HelloListener:
+    Type: AWS::GlobalAccelerator::Listener
+    Properties: 
+      AcceleratorArn: !Ref HelloGlobalAccelerator
+      PortRanges: 
+        - FromPort: 22
+          ToPort: 22
+      Protocol: 'TCP'
+
+  HelloEndpointGroup:
+    Type: AWS::GlobalAccelerator::EndpointGroup
+    Properties: 
+      EndpointConfigurations: 
+        - EndpointId: !Ref HelloInstance
+      EndpointGroupRegion: !Ref AWS::Region
+      # HealthCheckPort: 22
+      ListenerArn: !Ref HelloListener

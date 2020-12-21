@@ -122,7 +122,7 @@ Resources:
   HelloSubnetPrivate: 
     Type: AWS::EC2::Subnet
     Properties: 
-      AvailabilityZone: 'us-east-1a'
+      AvailabilityZone: !FindInMap [ Application, Settings, AvailabilityZone ]
       CidrBlock: !FindInMap [ Network, Settings, SubnetCidrBlockPrivate ]
       Tags: 
         - Key: 'Name' 
@@ -134,7 +134,7 @@ Resources:
   HelloSubnetPublic: 
     Type: AWS::EC2::Subnet
     Properties: 
-      AvailabilityZone: 'us-east-1a'
+      AvailabilityZone: !FindInMap [ Application, Settings, AvailabilityZone ]
       CidrBlock: !FindInMap [ Network, Settings, SubnetCidrBlockPublic ]
       MapPublicIpOnLaunch: true
       Tags: 
@@ -190,5 +190,3 @@ Resources:
     Properties: 
       RouteTableId: !Ref HelloRtNgw 
       SubnetId: !Ref HelloSubnetPrivate 
-
-  

@@ -1,45 +1,73 @@
+Mappings:
+  Instances:
+    Settings:
+      ImageId: 'ami-04bf6dcdc9ab498ca'
+      InstanceType: 't2.micro'
+  Network:
+    Settings:
+      SubnetCidrBlock: '10.16.0.0/24'
+      VpcCidrBlock: '10.16.0.0/16'
+  Application:
+    Settings:
+      AvailabilityZone: 'us-east-1a'
+      UniqueSuffix: 'e07'
+
 Resources: 
   #===== Flow Logs
   HelloFlowLogVpc: 
     Type: AWS::EC2::FlowLog
     Properties: 
       DeliverLogsPermissionArn: !GetAtt HelloFlowLogRole.Arn
-      LogGroupName: "hello-flow-log-group"
+      LogGroupName: !Sub
+        - 'hello-flow-log-group-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
       ResourceId: !Ref HelloVpc 
       ResourceType: VPC
       Tags: 
         - Key: "Name"
-          Value: "Hello Flow Log VPC"
+          Value: !Sub
+            - 'Hello flow log VPC ${UniqueSuffix}'
+            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
       TrafficType: ALL
   
   HelloFlowLogSubnet: 
     Type: AWS::EC2::FlowLog
     Properties: 
       DeliverLogsPermissionArn: !GetAtt HelloFlowLogRole.Arn
-      LogGroupName: "hello-flow-log-group"
+      LogGroupName: !Sub
+        - 'hello-flow-log-group-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
       ResourceId: !Ref HelloSubnet 
       ResourceType: Subnet
       Tags: 
         - Key: "Name"
-          Value: "Hello Flow Log Subnet"
+          Value: !Sub
+            - 'Hello flow log subnet ${UniqueSuffix}'
+            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
       TrafficType: ALL
 
   HelloFlowLogEni: 
     Type: AWS::EC2::FlowLog
     Properties: 
       DeliverLogsPermissionArn: !GetAtt HelloFlowLogRole.Arn
-      LogGroupName: "hello-flow-log-group"
+      LogGroupName: !Sub
+        - 'hello-flow-log-group-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
       ResourceId: !Ref HelloEni
       ResourceType: NetworkInterface
       Tags: 
         - Key: "Name"
-          Value: "Hello Flow Log Network Interface"
+          Value: !Sub
+            - 'Hello flow log ENI ${UniqueSuffix}'
+            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
       TrafficType: ALL
 
   HelloFlowLogGroup:
     Type: AWS::Logs::LogGroup
     Properties: 
-      LogGroupName: "hello-flow-log-group"
+      LogGroupName: !Sub
+        - 'hello-flow-log-group-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
 
   HelloFlowLogRole:
     Type: AWS::IAM::Role
@@ -52,7 +80,6 @@ Resources:
               - vpc-flow-logs.amazonaws.com
           Action: 
             - 'sts:AssumeRole'     
-      Description: "Hello Flow Log Role"
       Policies:
         - PolicyName: "hello-flow-log-policy"
           PolicyDocument: 
@@ -65,20 +92,24 @@ Resources:
                   - logs:DescribeLogStreams
                 Effect: 'Allow'
                 Resource: "*"
-      RoleName: hello-flow-log-role
+      RoleName: !Sub
+        - 'hello-flow-log-role-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
 
   #===== EC2 Instance
   HelloInstance: 
     Type: AWS::EC2::Instance
     Properties: 
-      AvailabilityZone: 'us-east-1a'
+      AvailabilityZone: !FindInMap [ Application, Settings, AvailabilityZone ]
       IamInstanceProfile: !Ref HelloInstanceProfile
-      ImageId: ami-04bf6dcdc9ab498ca
-      InstanceType: 't2.micro'
+      ImageId: !FindInMap [ Instances, Settings, ImageId ]
+      InstanceType: !FindInMap [ Instances, Settings, InstanceType ]
       SubnetId: !Ref HelloSubnet 
       Tags: 
         - Key: "Name"
-          Value: "Hello Instance"
+          Value: !Sub
+            - 'Hello Instance ${UniqueSuffix}'
+            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
 
   #===== IAM
   HelloRole:
@@ -94,7 +125,9 @@ Resources:
             - 'sts:AssumeRole'
       ManagedPolicyArns: 
         - 'arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore'
-      RoleName: 'hello-role'
+      RoleName: !Sub
+        - 'hello-role-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
 
   HelloInstanceProfile:
     Type: AWS::IAM::InstanceProfile
@@ -110,7 +143,9 @@ Resources:
       SubnetId: !Ref HelloSubnet
       Tags: 
         - Key: "Name"
-          Value: "Hello ENI"
+          Value: !Sub
+            - 'Hello ENI ${UniqueSuffix}'
+            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
 
   HelloEniAttach:
     Type: AWS::EC2::NetworkInterfaceAttachment
@@ -123,10 +158,12 @@ Resources:
   HelloVpc:
     Type: AWS::EC2::VPC
     Properties:
-      CidrBlock: '10.16.0.0/16'
+      CidrBlock: !FindInMap [ Network, Settings, VpcCidrBlock ]
       Tags: 
         - Key: "Name"
-          Value: "Hello VPC"
+          Value: !Sub
+            - 'Hello VPC ${UniqueSuffix}'
+            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
   
   HelloIgw:
     Type: AWS::EC2::InternetGateway
@@ -141,12 +178,14 @@ Resources:
   HelloSubnet:
     Type: AWS::EC2::Subnet
     Properties:
-      AvailabilityZone: 'us-east-1a'
-      CidrBlock: '10.16.0.0/24'
+      AvailabilityZone: !FindInMap [ Application, Settings, AvailabilityZone ]
+      CidrBlock: !FindInMap [ Network, Settings, SubnetCidrBlock ]
       MapPublicIpOnLaunch: true
       Tags: 
         - Key: "Name"
-          Value: "Hello Public Subnet"
+          Value: !Sub
+            - 'Hello subnet ${UniqueSuffix}'
+            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
       VpcId: !Ref HelloVpc
 
   #===== Route Table
@@ -155,7 +194,9 @@ Resources:
     Properties:
       Tags: 
         - Key: "Name"
-          Value: "Hello RT"
+          Value: !Sub
+            - 'Hello RT ${UniqueSuffix}'
+            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
       VpcId: !Ref HelloVpc
 
   HelloRouteIPv4:
