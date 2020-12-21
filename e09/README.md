@@ -32,3 +32,10 @@ Extend the CMK with Cloudtrail policies. Create a Cloudtrail Trail that delivers
 
 **Verify:** 
 - Observe Cloudtrail logs in encrypted bucket.
+
+## Exercise 4
+Create two aliases for the CMK.
+- [AWS::KMS::Alias](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-kms-alias.html)
+
+**Verify:**
+- Observe aliases in KMS console.

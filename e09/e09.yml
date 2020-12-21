@@ -4,12 +4,19 @@ Parameters:
     Type: String
     Description: Identifier to provide uniqueness on S3 buckets
 
+Mappings:
+  Application:
+    Settings:
+      UniqueSuffix: 'e13'
+
 Resources: 
   #===== S3
   HelloBucketEncrypted: 
     Type: AWS::S3::Bucket
     Properties: 
-      BucketName: !Sub 'hello-bucket-encrypted-${BucketSuffix}'
+      BucketName: !Sub 
+        - 'hello-encrypted-${BucketSuffix}-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
       BucketEncryption:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
@@ -19,7 +26,9 @@ Resources:
   HelloBucketUnencrypted: 
     Type: AWS::S3::Bucket
     Properties: 
-      BucketName: !Sub 'hello-bucket-unencrypted-${BucketSuffix}'
+      BucketName: !Sub 
+        - 'hello-unencrypted-${BucketSuffix}-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
   
   HelloBucketUnencryptedPolicy: 
     Type: AWS::S3::BucketPolicy
@@ -69,7 +78,9 @@ Resources:
       IncludeGlobalServiceEvents: true
       IsLogging: true
       S3BucketName: !Ref HelloBucketUnencrypted
-      TrailName: hello-cloud-trail-unencrypted
+      TrailName: !Sub
+        - 'hello-ct-unencrypted-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
 
   HelloCloudTrailEncrypted:
     DependsOn: HelloBucketEncryptedPolicy
@@ -79,7 +90,9 @@ Resources:
       IsLogging: true
       KMSKeyId: !Ref HelloKmsKey 
       S3BucketName: !Ref HelloBucketEncrypted
-      TrailName: hello-cloud-trail-encrypted
+      TrailName: !Sub
+        - 'hello-ct-encrypted-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
 
   #===== KMS
   HelloKmsKey: 
@@ -138,3 +151,15 @@ Resources:
         - Key: 'Name'
           Value: 'Hello Kms Key'
 
+  #===== Aliases
+  HelloAlias1:
+    Type: AWS::KMS::Alias
+    Properties: 
+      AliasName: 'alias/cmk-alias-1-of-2'
+      TargetKeyId: !Ref HelloKmsKey
+
+  HelloAlias2:
+    Type: AWS::KMS::Alias
+    Properties: 
+      AliasName: 'alias/cmk-alias-2-of-2'
+      TargetKeyId: !Ref HelloKmsKey
