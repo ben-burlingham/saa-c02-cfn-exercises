@@ -100,7 +100,7 @@ Resources:
       Roles: 
         - !Ref HelloRole
 
-  #===== VPC + IGW
+  #===== VPC, IGW, subnet
   HelloVpc:
     Type: AWS::EC2::VPC
     Properties:
@@ -120,7 +120,6 @@ Resources:
       InternetGatewayId: !Ref HelloIgw 
       VpcId: !Ref HelloVpc
 
-  #===== Subnet
   HelloSubnet:
     Type: AWS::EC2::Subnet
     Properties:

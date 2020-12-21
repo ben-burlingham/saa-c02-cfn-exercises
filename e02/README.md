@@ -1,4 +1,5 @@
 # Topics
+- EC2
 - EC2 Session Manager
 - IAM
 - VPCs
@@ -9,7 +10,8 @@
 ---
 
 ## Exercise 1
-Create VPC, subnet, and route table.
+Create VPC, IGW, subnet, and route table.
+- [AWS::EC2::SubnetRouteTableAssociation](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-subnet-route-table-assoc.html)
 
 **Verify:** 
 - Observe network components in VPC console.

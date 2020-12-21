@@ -1,4 +1,5 @@
 # Topics
+- NAT gateway pattern
 
 ================ E5: VPC NAT Gateway
 Two route tables are created for public and private.

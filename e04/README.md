@@ -1,30 +1,35 @@
-================ E4: VPC Bastion
+# Topics
+- Bastion pattern
 
-  SPLIT UP
-  REWRITE VERSIONS/GOALS
-  MAPPINGS FOR COMMON VALUES
-  OMIT SG?
+### Additional command line parameter: 
+```--parameters ParameterKey=BucketSuffix,ParameterValue=foo ParameterKey=KeyPairName,ParameterValue=bar```
 
-  v1 VPC, IGW, RT
-    Goal:
-    Internet gateway: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-internetgateway.html
-    Internet gateway attach: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-vpc-gateway-attachment.html
-    VPC: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-vpc.html
-    Route table: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-route-table.html
-    Route: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-route.html
+---
 
-  v2 VPC, IGW, RT, public + private subnets
-    Goal:
-    Note: Since private instance has no need to access the internet, it doesn't need an RT association.
-    Subnet: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-subnet.html
-    Subnet association: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-subnet-route-table-assoc.html
+## Exercise 1
+Create a VPC, IGW, RT, and public + private subnets
+- Refer to previous exercise(s) if necessary. 
 
-  v3 VPC, IGW, RT, public + private subnets, bastion EC2 + SG
-    Goal:
-    EC2 https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-instance.html
-    SG Ingress https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-security-group-rule-1.html
+**Verify:** 
+- Observe network components in VPC console.
 
-  v4 VPC, IGW, RT, public + private subnets, bastion EC2 + SG, private EC2 + SG
-    Goal:
-    Test: `ssh -i mykey.pem ec2-user@bastion.ip` then `ssh ec2-user@private.ip`
-    SG Egress https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-security-group-rule.html
+---
+
+## Exercise 2
+Create a public EC2 instance and a keypair parameter to SSH to it. Apply a SecurityGroup to allow public SSH access. This is the bastion instance.
+- [AWS::EC2::SecurityGroup Ingress](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-security-group-rule-1.html)
+
+**Verify:** 
+- SSH into the instance.
+
+---
+
+## Exercise 3
+Create a private EC2 instance that uses the same keypair parameter. Apply a security group to only allow SSH access from the bastion instance. Locally, enable SSH forwarding. 
+- [AWS::EC2::SecurityGroup Egress](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-security-group-rule.html)
+- [SSH forwarding with -A](https://yakking.branchable.com/posts/ssh-A/)
+- [ssh-agent on Git Bash for Windows](https://stackoverflow.com/questions/18404272)
+
+**Verify:** 
+- `ssh -i mykey.pem -A ec2-user@bastion.ip` then `ssh ec2-user@private.ip`
+  

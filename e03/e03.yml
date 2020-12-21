@@ -110,7 +110,7 @@ Resources:
       Roles: 
         - !Ref HelloRole
 
-  #====== Network
+  #====== VPC, IGW, subnet
   HelloVpc:
     Type: AWS::EC2::VPC
     Properties:
@@ -143,6 +143,7 @@ Resources:
             - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
       VpcId: !Ref HelloVpc
 
+  #===== Route table
   HelloRt:
     Type: AWS::EC2::RouteTable
     Properties:
