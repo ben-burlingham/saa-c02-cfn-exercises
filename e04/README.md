@@ -32,7 +32,7 @@ Create a private EC2 instance that uses the same keypair parameter. Apply a secu
 - [ssh-agent on Git Bash for Windows](https://stackoverflow.com/questions/18404272)
 
 **Verify:** 
-- `ssh -i mykey.pem -A ec2-user@bastion.ip` then `ssh private.ip`
+- `ssh -i mykey.pem -A ec2-user@bastion.ip` then `ssh privateip`
 - Confirm failed (100% packet loss) ping to `1.1.1.1` from private instance.
   
 ---

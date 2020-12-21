@@ -1,0 +1,14 @@
+version: 0.0
+
+Resources:
+  - HelloLambda: 
+      Type: AWS::Lambda::Function
+      Properties:
+        Name: 'hello-codedeploy-lambda'
+        # Alias: "" # Specify the alias for your Lambda function
+        # CurrentVersion: "" # Specify the current version of your Lambda function
+        # TargetVersion: "" # Specify the version of your Lambda function to deploy
+
+# Hooks:
+#   - AfterAllowTraffic: ""
+#   - BeforeAllowTraffic: ""

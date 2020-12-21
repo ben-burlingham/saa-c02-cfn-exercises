@@ -1,0 +1,21 @@
+version: 0.2
+ 
+phases:
+  install:
+    commands:
+      - echo "Hello build phase."
+      - pwd
+      - ls
+      - whoami
+      - chmod 777 build.sh
+    finally:
+      - echo "Hello install phase cleanup."
+  pre_build:
+    commands:
+      - echo "Hello pre-build phase."
+  build:
+    commands:
+      - ./build.sh
+  post_build:
+    finally:
+      - echo "Hello post-build phase cleanup."

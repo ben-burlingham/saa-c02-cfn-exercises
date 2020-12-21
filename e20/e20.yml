@@ -109,7 +109,7 @@ Resources:
         - !Ref HelloSubnetPrivate
       VpcEndpointType: 'Interface'
       VpcId: !Ref HelloVpc
-
+    
   HelloGatewayEndpoint:
     Type: AWS::EC2::VPCEndpoint
     Properties: 

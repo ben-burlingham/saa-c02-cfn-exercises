@@ -14,7 +14,7 @@ Create a public and private subnet, an EC2 instance on each subnet, and a public
 - [ssh-agent on Git Bash for Windows](https://stackoverflow.com/questions/18404272)
 
 **Verify:**
-- `ssh -A ec2-user@publicip` to access public EC2 instance, then `ssh ec2-user@privateip` to access private instance
+- `ssh -A ec2-user@publicip` to access public EC2 instance, then `ssh privateip` to access private instance
 - Confirm no public internet connectivity in private EC2 instance: `ping www.google.com`
 - Confirm bucket access from public EC2 instance: `wget hello-s3-object-url`
 - Confirm no bucket access from private EC2 instance: `wget hello-s3-object-url`
@@ -32,13 +32,13 @@ Add an instance profile to each EC2 instance enabling `arn:aws:iam::aws:policy/A
 ---
 
 ## Exercise 3
-Add a VPC interface endpoint and apply a security group for it.
-- [VPCEndpoint](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-vpcendpoint.html)
-- [Example usage](https://www.youtube.com/watch?v=caJ7zh9qzmw&t=2s)
+Add a VPC interface endpoint for the EC2 service and apply a security group for it. 
+- [AWS::EC2::VPCEndpoint](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-vpcendpoint.html)
+- [Example usage](https://www.youtube.com/watch?v=caJ7zh9qzmw&t=2s))
 
 **Verify:**
 - Confirm no public internet connectivity in private EC2 instance: `ping www.google.com`
-- Confirm access to EC2 service in private EC2 instance: `aws ec2 describe-vpcs --region us-east-1 --endpoint-url https://regional-endpoint-url` 
+- Confirm access to EC2 service from inside the private EC2 instance: `aws ec2 describe-vpcs --region us-east-1 --endpoint-url https://regional-endpoint-url` 
 
 ---
 

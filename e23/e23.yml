@@ -1,0 +1,124 @@
+Mappings:
+  Application:
+    Settings:
+      UniqueSuffix: 'e23'
+
+Resources:
+  #===== CodeCommit
+  HelloCommitRepo: 
+    Type: AWS::CodeCommit::Repository
+    Properties: 
+      RepositoryName: !Sub
+        - 'hello-commit-repo-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+
+  #===== CodeBuild
+  HelloBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties: 
+      Artifacts: 
+        Type: 'NO_ARTIFACTS'
+      Environment: 
+        ComputeType: 'BUILD_GENERAL1_SMALL'
+        Image: 'aws/codebuild/amazonlinux2-x86_64-standard:2.0'
+        ImagePullCredentialsType: 'CODEBUILD'
+        Type: 'LINUX_CONTAINER'
+      Name: !Sub
+        - 'hello-build-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+      QueuedTimeoutInMinutes: 5
+      ServiceRole: !GetAtt HelloRole.Arn
+      Source: 
+        GitCloneDepth: 1
+        Location: !GetAtt HelloCommitRepo.CloneUrlHttp
+        Type: 'CODECOMMIT'
+      TimeoutInMinutes: 5
+
+  #===== CodeDeploy
+  HelloApplication:
+    Type: AWS::CodeDeploy::Application
+    Properties: 
+      ApplicationName: !Sub
+        - 'hello-deploy-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+      ComputePlatform: 'Lambda'
+
+  HelloDeploymentGroup:
+    Type: AWS::CodeDeploy::DeploymentGroup
+    Properties: 
+      ApplicationName: !Ref HelloApplication
+      DeploymentConfigName: 'CodeDeployDefault.LambdaAllAtOnce'
+      ServiceRoleArn: !GetAtt HelloRoleCodeDeploy.Arn
+      # TriggerConfigurations: 
+      #   - TriggerEvents: 
+      #       - String
+      #     TriggerName: String
+      #     TriggerTargetArn: String
+
+  #===== Lambdas
+  HelloLambda:
+    Type: AWS::Lambda::Function
+    Properties: 
+      Code: 
+        ZipFile: |
+          exports.handler = async (event, _) => { 
+            console.log("EVENT", event);
+            return "Hello from CodeDeploy lambda";
+          }
+      FunctionName: 'hello-codedeploy-lambda'
+      Handler: 'index.handler'
+      Role: !GetAtt HelloRoleLambdaExecution.Arn
+      Runtime: 'nodejs12.x'
+
+  #===== IAM
+  HelloRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          Effect: 'Allow'
+          Principal: 
+            Service: 
+              - 'codebuild.amazonaws.com'
+          Action: 
+            - 'sts:AssumeRole'
+      ManagedPolicyArns: 
+        - 'arn:aws:iam::aws:policy/AWSCodeBuildDeveloperAccess'
+        - 'arn:aws:iam::aws:policy/AWSCodeCommitReadOnly'
+      RoleName: !Sub
+        - 'hello-role-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+
+  HelloRoleCodeDeploy:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          Effect: 'Allow'
+          Principal: 
+            Service: 
+              - 'codedeploy.amazonaws.com'
+          Action: 
+            - 'sts:AssumeRole'
+      ManagedPolicyArns: 
+        - 'arn:aws:iam::aws:policy/service-role/AWSCodeDeployRoleForLambda'
+      RoleName: !Sub
+        - 'hello-role-cd-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+
+  HelloRoleLambdaExecution:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          Effect: 'Allow'
+          Principal: 
+            Service: 
+              - 'lambda.amazonaws.com'
+          Action: 
+            - 'sts:AssumeRole'
+      # ManagedPolicyArns: 
+      #   - 'arn:aws:iam::aws:policy/service-role/AWSLambdaDynamoDBExecutionRole'
+      RoleName: !Sub
+        - 'hello-role-le-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]

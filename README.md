@@ -39,18 +39,12 @@ An example of a common CLI call:
   ```
 
 ==================== BACKLOG
-E01 ADD CROSS-REGION REPLICATION
-E04 VERIFY
-E05 OPEN FOR EASY TOPIC
-E07 UPDATE WRITING. ADD GLOBAL ACCELERATOR.
+E01 ADD CROSS-REGION REPLICATION 
+E05 GLOBAL ACCELERATOR + PLACEMENT GROUPS
 E09 ADD KMS ALIAS
 E13 ADD IAM BASED AUTH
-E20 ADD SESSIONMANAGER INTO PRIVATE EC2 https://aws.amazon.com/premiumsupport/knowledge-center/ec2-systems-manager-vpc-endpoints/
-E23 ATHENA + ELASTICACHE
-E26 CodeBuild + CodeDeploy
+E23 CodeBuild + CodeDeploy (study page?)
 
-S3 Signed URLs
 Cloud HSM
 SES e17?
-Placement groups
-DDB ApplicationAutoScaling
+Elasticache

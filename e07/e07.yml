@@ -18,9 +18,7 @@ Resources:
     Type: AWS::EC2::FlowLog
     Properties: 
       DeliverLogsPermissionArn: !GetAtt HelloFlowLogRole.Arn
-      LogGroupName: !Sub
-        - 'hello-flow-log-group-${UniqueSuffix}'
-        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+      LogGroupName: !Ref HelloFlowLogGroup
       ResourceId: !Ref HelloVpc 
       ResourceType: VPC
       Tags: 
@@ -34,9 +32,7 @@ Resources:
     Type: AWS::EC2::FlowLog
     Properties: 
       DeliverLogsPermissionArn: !GetAtt HelloFlowLogRole.Arn
-      LogGroupName: !Sub
-        - 'hello-flow-log-group-${UniqueSuffix}'
-        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+      LogGroupName: !Ref HelloFlowLogGroup
       ResourceId: !Ref HelloSubnet 
       ResourceType: Subnet
       Tags: 
@@ -50,9 +46,7 @@ Resources:
     Type: AWS::EC2::FlowLog
     Properties: 
       DeliverLogsPermissionArn: !GetAtt HelloFlowLogRole.Arn
-      LogGroupName: !Sub
-        - 'hello-flow-log-group-${UniqueSuffix}'
-        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+      LogGroupName: !Ref HelloFlowLogGroup
       ResourceId: !Ref HelloEni
       ResourceType: NetworkInterface
       Tags: 
