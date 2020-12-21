@@ -40,19 +40,20 @@ An example of a common CLI call:
 
 ==================== BACKLOG
 E01 ADD CROSS-REGION REPLICATION
-E05 MAPPINGS, REWRITE
+E05 OPEN FOR EASY TOPIC
 E07 MAPPINGS
 E09 ADD KMS ALIAS
 E20 ADD SESSIONMANAGER INTO PRIVATE EC2 https://aws.amazon.com/premiumsupport/knowledge-center/ec2-systems-manager-vpc-endpoints/
 E23 ATHENA + ELASTICACHE
 E26 CodeBuild + CodeDeploy
 
-GlobalAccelerator
+S3 Signed URLs
 Directory service
 SES
 Placement groups
+
+GlobalAccelerator
 RDS backups
 RDS IAM based authentication
 Cloud HSM
 DDB ApplicationAutoScaling
-S3 Signed URLs

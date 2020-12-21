@@ -1,5 +1,6 @@
 # Topics
 - Bastion pattern
+- NAT gateway pattern
 
 ### Additional command line parameter: 
 ```--parameters ParameterKey=BucketSuffix,ParameterValue=foo ParameterKey=KeyPairName,ParameterValue=bar```
@@ -32,4 +33,14 @@ Create a private EC2 instance that uses the same keypair parameter. Apply a secu
 
 **Verify:** 
 - `ssh -i mykey.pem -A ec2-user@bastion.ip` then `ssh ec2-user@private.ip`
+- Confirm failed (100% packet loss) ping to `1.1.1.1` from private instance.
   
+---
+
+## Exercise 4
+Add an ElasticIP and a NAT Gateway to the private subnet. Add a route table for the NAT Gateway.
+- [AWS::EC2::EIP](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-eip.html)
+- [AWS::EC2::NatGateway](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-natgateway.html)
+
+**Verify:**
+- Confirm successful (0% packet loss) ping to `1.1.1.1` from private instance.

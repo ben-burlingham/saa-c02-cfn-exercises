@@ -11,7 +11,7 @@ You can't SSH directly to IPv6 without this.
 
 ## Exercise 1
 Create a VPC with an IPv6 VPCCidrBlock, IGW, a route table, and IPv6 subnet.
-- [VPC CIDR block](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-vpccidrblock.html)
+- [AWS::EC2::VPCCidrBlock](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-vpccidrblock.html)
 - [!Cidr](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference-cidr.html)
 - [Subnet DependsOn CIDR block](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-dependson.html)
 
@@ -25,14 +25,14 @@ Create a VPC with an IPv6 VPCCidrBlock, IGW, a route table, and IPv6 subnet.
 Create an EC2 instance and an instance profile. Associate an Elastic IP to the instance.
 - Refer to previous exercise(s) if necessary. 
 - [Why EIP](https://serverfault.com/questions/846387)
-- [EIP association](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-eip-association.html)
+- [AWS::EC2::EIPAssociation](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-eip-association.html)
 
 **Verify:**
 - Confirm instance has been assigned an IPv6
 - Confirm instance has a publicly available IPv4
 - Use Session Manager to connect to the instance
-- Confirm 0% packet loss (success) of `ping6 ipv6.google.com` from instance
-- Confirm 0% packet loss (success) ping to instance using http://ipv6now.com.au/pingme.php
+- Confirm successful (0% packet loss) of `ping6 ipv6.google.com` from instance
+- Confirm successful (0% packet loss) ping to instance using http://ipv6now.com.au/pingme.php
 
 ---
 
@@ -40,5 +40,5 @@ Create an EC2 instance and an instance profile. Associate an Elastic IP to the i
 Attach an egress-only internet gateway to the VPC.
 
 **Verify:**
-- Confirm 0% packet loss (success) of `ping6 ipv6.google.com` from instance
-- Confirm 100% packet loss (failure) ping to instance using http://ipv6now.com.au/pingme.php
+- Confirm successful (0% packet loss) of `ping6 ipv6.google.com` from instance
+- Confirm failed (100% packet loss) ping to instance using http://ipv6now.com.au/pingme.php

@@ -32,7 +32,7 @@ Create EC2 instance that uses the instance profile.
 
 **Verify:** 
 - Connect to instance via Session Manager in EC2 console.
-- Confirm 0% packet loss ping to `1.1.1.1`.
+- Confirm successful (0% packet loss) ping to `1.1.1.1`.
 
 ---
 
@@ -42,4 +42,4 @@ Block all pings to `1.1.1.1`.
 - [Subnet NACL association](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-subnet-network-acl-assoc.html)
 
 **Verify:** 
-- 100% packet loss ping to `1.1.1.1`.
+- Confirm failed (100% packet loss) ping to `1.1.1.1`.

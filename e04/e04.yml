@@ -81,6 +81,21 @@ Resources:
         ToPort: 22
       VpcId: !Ref HelloVpc 
 
+  #===== EIP, NGW
+  HelloEip: 
+    Type: AWS::EC2::EIP
+
+  HelloNgw: 
+    Type: AWS::EC2::NatGateway
+    Properties: 
+      AllocationId: !GetAtt HelloEip.AllocationId
+      SubnetId: !Ref HelloSubnetPublic
+      Tags: 
+        - Key: 'Name' 
+          Value: !Sub
+            - 'Hello NGW ${UniqueSuffix}'
+            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+
   #===== VPC, IGW
   HelloVpc: 
     Type: AWS::EC2::VPC
@@ -129,28 +144,51 @@ Resources:
             - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
       VpcId: !Ref HelloVpc 
 
-  #===== Route table
-  HelloRoute: 
+  #===== Route tables
+  HelloRouteIgw: 
     Type: AWS::EC2::Route
     Properties: 
       DestinationCidrBlock: '0.0.0.0/0'
       GatewayId: !Ref HelloIgw 
-      RouteTableId: !Ref HelloRouteTable 
-        
-  HelloRouteTable: 
+      RouteTableId: !Ref HelloRtIgw 
+  
+  HelloRouteNgw: 
+    Type: AWS::EC2::Route
+    Properties: 
+      DestinationCidrBlock: '0.0.0.0/0'
+      NatGatewayId: !Ref HelloNgw 
+      RouteTableId: !Ref HelloRtNgw 
+  
+  HelloRtIgw: 
     Type: AWS::EC2::RouteTable
     Properties: 
       Tags: 
         - Key: 'Name' 
           Value: !Sub
-            - 'Hello RT ${UniqueSuffix}'
+            - 'Hello RT IGW ${UniqueSuffix}'
             - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
       VpcId: !Ref HelloVpc 
-      
-  HelloRouteTableAssociate: 
+    
+  HelloRtNgw: 
+    Type: AWS::EC2::RouteTable
+    Properties: 
+      Tags: 
+        - Key: 'Name' 
+          Value: !Sub
+            - 'Hello RT NGW ${UniqueSuffix}'
+            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+      VpcId: !Ref HelloVpc 
+    
+  HelloRtIgwAssociate: 
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties: 
-        RouteTableId: !Ref HelloRouteTable 
-        SubnetId: !Ref HelloSubnetPublic 
+      RouteTableId: !Ref HelloRtIgw 
+      SubnetId: !Ref HelloSubnetPublic 
+  
+  HelloRtNgwAssociate: 
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties: 
+      RouteTableId: !Ref HelloRtNgw 
+      SubnetId: !Ref HelloSubnetPrivate 
 
   
