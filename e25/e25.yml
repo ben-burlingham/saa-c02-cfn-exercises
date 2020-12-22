@@ -62,8 +62,8 @@ Resources:
     Type: AWS::S3::Bucket
     Properties: 
       BucketName: !Sub
-        - 'hello-bucket-${Suffix}'
-        - Suffix: !Ref BucketSuffix 
+        - 'hello-bucket-${BucketSuffix}-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
 
   HelloBucketPolicy: 
     Type: AWS::S3::BucketPolicy

@@ -41,7 +41,6 @@ An example of a common CLI call:
 ==================== BACKLOG
 E01 ADD CROSS-REGION REPLICATION 
 E05 GLOBAL ACCELERATOR + PLACEMENT GROUPS
-E09 ADD KMS ALIAS
 E13 ADD IAM BASED AUTH
 E23 CodeBuild + CodeDeploy (study page?)
 

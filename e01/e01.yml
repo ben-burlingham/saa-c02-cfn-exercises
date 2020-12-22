@@ -14,9 +14,9 @@ Resources:
         ServerSideEncryptionConfiguration:   
           - ServerSideEncryptionByDefault: 
               SSEAlgorithm: 'AES256'
-      BucketName: !Sub 
-        - 'hello-source-${Suffix}'
-        - Suffix: !Ref BucketSuffix
+      BucketName: !Sub
+        - 'hello-bucket-${BucketSuffix}-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
       ReplicationConfiguration: 
         Role: !GetAtt HelloRole.Arn
         Rules: 

@@ -1,3 +1,9 @@
+Parameters: 
+  BucketSuffix: 
+    AllowedPattern: ^[\d\w]{5,}$
+    Type: String
+    Description: Identifier to provide uniqueness on S3 buckets
+
 Mappings:
   Application:
     Settings:
@@ -34,26 +40,47 @@ Resources:
         Type: 'CODECOMMIT'
       TimeoutInMinutes: 5
 
-  #===== CodeDeploy
-  HelloApplication:
-    Type: AWS::CodeDeploy::Application
-    Properties: 
-      ApplicationName: !Sub
-        - 'hello-deploy-${UniqueSuffix}'
-        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
-      ComputePlatform: 'Lambda'
+  # #===== CodeDeploy
+  # HelloApplication:
+  #   Type: AWS::CodeDeploy::Application
+  #   Properties: 
+  #     ApplicationName: !Sub
+  #       - 'hello-deploy-${UniqueSuffix}'
+  #       - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+  #     ComputePlatform: 'Lambda'
 
-  HelloDeploymentGroup:
-    Type: AWS::CodeDeploy::DeploymentGroup
-    Properties: 
-      ApplicationName: !Ref HelloApplication
-      DeploymentConfigName: 'CodeDeployDefault.LambdaAllAtOnce'
-      ServiceRoleArn: !GetAtt HelloRoleCodeDeploy.Arn
-      # TriggerConfigurations: 
-      #   - TriggerEvents: 
-      #       - String
-      #     TriggerName: String
-      #     TriggerTargetArn: String
+  # HelloDeploymentGroup:
+  #   Type: AWS::CodeDeploy::DeploymentGroup
+  #   Properties: 
+  #     ApplicationName: !Ref HelloApplication
+  #     #===== Not working at this time? 12/21/20
+  #     # Deployment:
+  #     #   Revision: 
+  #     #     RevisionType: |
+  #     #       version: 0.0
+
+  #     #       Resources:
+  #     #         - HelloLambda: 
+  #     #             Type: AWS::Lambda::Function
+  #     #             Properties:
+  #     #               Name: 'hello-codedeploy-lambda'
+  #     #               Alias: "TEST-V2" 
+  #     #               CurrentVersion: "2" 
+  #     #               TargetVersion: "1"
+  #     #===== (also not working)
+  #     Deployment:
+  #       Revision: 
+  #         RevisionType: 'S3'
+  #         S3Location: 
+  #           Bucket: 'hello-bucket-burlingham-e23'
+  #           BundleType: 'YAML'
+  #           Key: 'AppSpec.yml'
+  #     #=====
+  #     DeploymentConfigName: 'CodeDeployDefault.LambdaAllAtOnce'
+  #     DeploymentStyle:
+  #       DeploymentOption: WITH_TRAFFIC_CONTROL
+  #       DeploymentType: BLUE_GREEN
+  #     ServiceRoleArn: !GetAtt HelloRoleCodeDeploy.Arn
 
   #===== Lambdas
   HelloLambda:
@@ -102,6 +129,7 @@ Resources:
             - 'sts:AssumeRole'
       ManagedPolicyArns: 
         - 'arn:aws:iam::aws:policy/service-role/AWSCodeDeployRoleForLambda'
+        - 'arn:aws:iam::aws:policy/AmazonS3FullAccess'
       RoleName: !Sub
         - 'hello-role-cd-${UniqueSuffix}'
         - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
@@ -117,8 +145,29 @@ Resources:
               - 'lambda.amazonaws.com'
           Action: 
             - 'sts:AssumeRole'
-      # ManagedPolicyArns: 
-      #   - 'arn:aws:iam::aws:policy/service-role/AWSLambdaDynamoDBExecutionRole'
+      ManagedPolicyArns: 
+        - 'arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
       RoleName: !Sub
         - 'hello-role-le-${UniqueSuffix}'
         - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+
+  #===== S3
+  HelloBucket: 
+    Type: AWS::S3::Bucket
+    Properties: 
+      BucketName: !Sub
+        - 'hello-bucket-${BucketSuffix}-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+
+  HelloBucketPolicy: 
+    Type: AWS::S3::BucketPolicy
+    Properties: 
+      Bucket: !Ref HelloBucket
+      PolicyDocument: 
+        Statement: 
+          Principal: '*'
+          Action: '*'
+          Effect: 'Allow'
+          Resource: !Sub
+            - arn:aws:s3:::${TargetBucketName}/*
+            - TargetBucketName: !Ref HelloBucket
