@@ -1,165 +1,147 @@
-Parameters: 
-  BucketSuffix: 
-    AllowedPattern: ^[\d\w]{5,}$
-    Type: String
-    Description: Identifier to provide uniqueness on S3 buckets
-
 Mappings:
+  Instances:
+    Settings:
+      ImageId: 'ami-04bf6dcdc9ab498ca'
+      InstanceType: 't2.micro'
+  Network:
+    Settings:
+      SubnetCidrBlock: '10.16.0.0/24'
+      VpcCidrBlock: '10.16.0.0/16'
   Application:
     Settings:
-      UniqueSuffix: 'e13'
+      AvailabilityZone: 'us-east-1a'
+      UniqueSuffix: 'e09'
 
-Resources: 
-  #===== S3
-  HelloBucketEncrypted: 
-    Type: AWS::S3::Bucket
+Resources:
+  #===== Global Accelerator
+  HelloGlobalAccelerator:
+    Type: AWS::GlobalAccelerator::Accelerator
     Properties: 
-      BucketName: !Sub 
-        - 'hello-encrypted-${BucketSuffix}-${UniqueSuffix}'
-        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
-      BucketEncryption:
-        ServerSideEncryptionConfiguration:
-          - ServerSideEncryptionByDefault:
-              SSEAlgorithm: 'aws:kms'
-              KMSMasterKeyID: !GetAtt HelloKmsKey.Arn
-  
-  HelloBucketUnencrypted: 
-    Type: AWS::S3::Bucket
-    Properties: 
-      BucketName: !Sub 
-        - 'hello-unencrypted-${BucketSuffix}-${UniqueSuffix}'
-        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
-  
-  HelloBucketUnencryptedPolicy: 
-    Type: AWS::S3::BucketPolicy
-    Properties: 
-      Bucket: !Ref HelloBucketUnencrypted
-      PolicyDocument: 
-        Statement: 
-          - Principal: 
-              Service: cloudtrail.amazonaws.com
-            Action: 's3:GetBucketAcl'
-            Effect: 'Allow'
-            Resource: !GetAtt HelloBucketUnencrypted.Arn
-          - Principal: 
-              Service: cloudtrail.amazonaws.com
-            Action: 's3:PutObject'
-            Effect: 'Allow'
-            Resource: !Sub '${HelloBucketUnencrypted.Arn}/AWSLogs/${AWS::AccountId}/*'
-            Condition:
-              StringEquals: 
-                s3:x-amz-acl: 'bucket-owner-full-control'
-
-  HelloBucketEncryptedPolicy: 
-    Type: AWS::S3::BucketPolicy
-    Properties: 
-      Bucket: !Ref HelloBucketEncrypted
-      PolicyDocument: 
-        Statement: 
-          - Principal: 
-              Service: cloudtrail.amazonaws.com
-            Action: 's3:GetBucketAcl'
-            Effect: 'Allow'
-            Resource: !GetAtt HelloBucketEncrypted.Arn
-          - Principal: 
-              Service: cloudtrail.amazonaws.com
-            Action: 's3:PutObject'
-            Effect: 'Allow'
-            Resource: !Sub '${HelloBucketEncrypted.Arn}/AWSLogs/${AWS::AccountId}/*'
-            Condition:
-              StringEquals: 
-                s3:x-amz-acl: 'bucket-owner-full-control'
-
-  #===== CloudTrail
-  HelloCloudTrailUnencrypted:
-    DependsOn: HelloBucketUnencryptedPolicy
-    Type: AWS::CloudTrail::Trail
-    Properties: 
-      IncludeGlobalServiceEvents: true
-      IsLogging: true
-      S3BucketName: !Ref HelloBucketUnencrypted
-      TrailName: !Sub
-        - 'hello-ct-unencrypted-${UniqueSuffix}'
+      Enabled: true
+      Name: !Sub
+        - 'hello-accelerator-${UniqueSuffix}'
         - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
 
-  HelloCloudTrailEncrypted:
-    DependsOn: HelloBucketEncryptedPolicy
-    Type: AWS::CloudTrail::Trail
+  HelloListener:
+    Type: AWS::GlobalAccelerator::Listener
     Properties: 
-      IncludeGlobalServiceEvents: false
-      IsLogging: true
-      KMSKeyId: !Ref HelloKmsKey 
-      S3BucketName: !Ref HelloBucketEncrypted
-      TrailName: !Sub
-        - 'hello-ct-encrypted-${UniqueSuffix}'
-        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+      AcceleratorArn: !Ref HelloGlobalAccelerator
+      PortRanges: 
+        - FromPort: 80
+          ToPort: 80
+      Protocol: 'TCP'
 
-  #===== KMS
-  HelloKmsKey: 
-    Type: AWS::KMS::Key
+  HelloEndpointGroup:
+    Type: AWS::GlobalAccelerator::EndpointGroup
     Properties: 
-      KeyPolicy: 
-        Statement:
-          - Sid: 'Allow access for Key Administrators'
-            Effect: 'Allow'
-            Principal: 
-              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
-            Action: 
-              - 'kms:Create*'
-              - 'kms:Describe*'
-              - 'kms:Enable*'
-              - 'kms:List*'
-              - 'kms:Put*'
-              - 'kms:Update*'
-              - 'kms:Revoke*'
-              - 'kms:Disable*'
-              - 'kms:Get*'
-              - 'kms:Delete*'
-              - 'kms:ScheduleKeyDeletion'
-              - 'kms:CancelKeyDeletion'
-            Resource: '*'
-          - Sid: 'Allow CloudTrail to encrypt logs'
-            Effect: 'Allow'
-            Principal: 
-              Service: 'cloudtrail.amazonaws.com'
-            Action: 
-                - 'kms:GenerateDataKey*'
-            Resource: '*'
-            Condition: 
-              StringLike: 
-                kms:EncryptionContext:aws:cloudtrail:arn: 
-                  !Sub 'arn:aws:cloudtrail:*:${AWS::AccountId}:trail/*'
-          # Comment out this block to observe that the Trail can't be decrypted in S3 ("denied").
-          - Sid: 'Enable CloudTrail log decrypt permissions'
-            Effect: 'Allow'
-            Principal: 
-              AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:user/iamadmin'
-            Action: 
-              - 'kms:Decrypt*'
-            Resource: '*'
-            Condition: 
-              'Null': 
-                kms:EncryptionContext:aws:cloudtrail:arn: false
-          - Sid: 'Allow CloudTrail access'
-            Effect: 'Allow'
-            Principal: 
-              Service: 'cloudtrail.amazonaws.com'
-            Action: 
-              - 'kms:DescribeKey'
-            Resource: '*'
+      EndpointConfigurations: 
+        - EndpointId: !Ref HelloInstance
+      EndpointGroupRegion: !Ref AWS::Region
+      ListenerArn: !Ref HelloListener
+
+  #===== EC2
+  HelloInstance: 
+    Type: AWS::EC2::Instance
+    CreationPolicy:
+      ResourceSignal:
+        Timeout: PT2M
+    Properties: 
+      AvailabilityZone: !FindInMap [ Application, Settings, AvailabilityZone ]
+      IamInstanceProfile: !Ref HelloInstanceProfile
+      ImageId: !FindInMap [ Instances, Settings, ImageId ]
+      InstanceType: !FindInMap [ Instances, Settings, InstanceType ]
       Tags: 
         - Key: 'Name'
-          Value: 'Hello Kms Key'
+          Value: !Sub
+            - 'Hello Instance ${UniqueSuffix}'
+            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash -xe
+          sudo yum install -y httpd
+          sudo systemctl start httpd
+          /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource HelloInstance --region ${AWS::Region}
 
-  #===== Aliases
-  HelloAlias1:
-    Type: AWS::KMS::Alias
+  #===== VPC, IGW, subnet
+  HelloVpc: 
+    Type: AWS::EC2::VPC
     Properties: 
-      AliasName: 'alias/cmk-alias-1-of-2'
-      TargetKeyId: !Ref HelloKmsKey
+      CidrBlock: !FindInMap [ Network, Settings, VpcCidrBlock ]
+      Tags: 
+        - Key: 'Name' 
+          Value: !Sub
+            - 'Hello VPC ${UniqueSuffix}'
+            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
 
-  HelloAlias2:
-    Type: AWS::KMS::Alias
+  HelloIgw: 
+    Type: AWS::EC2::InternetGateway
+
+  HelloVpcAttach: 
+    Type: AWS::EC2::VPCGatewayAttachment
     Properties: 
-      AliasName: 'alias/cmk-alias-2-of-2'
-      TargetKeyId: !Ref HelloKmsKey
+      InternetGatewayId: !Ref HelloIgw 
+      VpcId: !Ref HelloVpc 
+  
+  HelloSubnet: 
+    Type: AWS::EC2::Subnet
+    Properties: 
+      AvailabilityZone: !FindInMap [ Application, Settings, AvailabilityZone ]
+      CidrBlock: !FindInMap [ Network, Settings, SubnetCidrBlock ]
+      MapPublicIpOnLaunch: true
+      Tags: 
+        - Key: 'Name' 
+          Value: !Sub
+            - 'Hello subnet ${UniqueSuffix}'
+            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+      VpcId: !Ref HelloVpc 
+
+  #===== Route table
+  HelloRouteIgw: 
+    Type: AWS::EC2::Route
+    Properties: 
+      DestinationCidrBlock: '0.0.0.0/0'
+      GatewayId: !Ref HelloIgw 
+      RouteTableId: !Ref HelloRtIgw 
+  
+  HelloRtIgw: 
+    Type: AWS::EC2::RouteTable
+    Properties: 
+      Tags: 
+        - Key: 'Name' 
+          Value: !Sub
+            - 'Hello RT IGW ${UniqueSuffix}'
+            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+      VpcId: !Ref HelloVpc 
+    
+  HelloRtIgwAssociate: 
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties: 
+      RouteTableId: !Ref HelloRtIgw 
+      SubnetId: !Ref HelloSubnet
+
+  #===== IAM
+  HelloRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          Effect: 'Allow'
+          Principal: 
+            Service: 
+              - 'ec2.amazonaws.com'
+          Action: 
+            - 'sts:AssumeRole'
+      ManagedPolicyArns: 
+        - 'arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore'
+      RoleName: !Sub
+        - 'hello-role-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+
+  HelloInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties: 
+      InstanceProfileName: !Sub
+        - 'hello-instance-profile-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+      Roles: 
+        - !Ref HelloRole

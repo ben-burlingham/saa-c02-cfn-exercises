@@ -43,7 +43,7 @@ Resources:
       ImageId: !FindInMap [ Instances, Settings, ImageId ]
       InstanceType: !FindInMap [ Instances, Settings, InstanceType ]
       SecurityGroupIds:
-        - !Ref HelloSgA
+        - !Ref HelloSecurityGroupA
       SubnetId: !Ref HelloSubnetA
       Tags: 
         - Key: 'Name'
@@ -59,7 +59,7 @@ Resources:
       ImageId: !FindInMap [ Instances, Settings, ImageId ]
       InstanceType: !FindInMap [ Instances, Settings, InstanceType ]
       SecurityGroupIds:
-        - !Ref HelloSgB
+        - !Ref HelloSecurityGroupB
       SubnetId: !Ref HelloSubnetB
       Tags: 
         - Key: 'Name'
@@ -113,7 +113,7 @@ Resources:
   #     VpcId: !Ref HelloVpcB
 
   #===== Security groups
-  HelloSgA: 
+  HelloSecurityGroupA: 
     Type: AWS::EC2::SecurityGroup
     Properties: 
       GroupDescription: 'Open to IPv4 traffic'
@@ -125,7 +125,7 @@ Resources:
         IpProtocol: -1
       VpcId: !Ref HelloVpcA
 
-  HelloSgB: 
+  HelloSecurityGroupB: 
     Type: AWS::EC2::SecurityGroup
     Properties: 
       GroupDescription: 'Open to IPv4 traffic'

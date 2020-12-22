@@ -14,10 +14,6 @@ Transferring a domain from another registrar takes 7-10 days and incurs a simila
 ## Exercise 1
 Create two public EC2 instances. Install the `httpd` server on them with a unique index document per server.
 - Refer to previous exercise(s) if necessary. 
-- `sudo yum install -y httpd`
-- `sudo systemctl start httpd`
-- `sudo echo "<html><h1>Hello Instance N</h1></html>" > /var/www/html/index.html`
-- [Web server creation](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_Tutorials.WebServerDB.CreateWebServer.html)
 
 **Verify:** 
 - Access each instance via HTTP and confirm that each serves a unique page.

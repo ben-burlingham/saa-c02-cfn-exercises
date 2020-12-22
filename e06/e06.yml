@@ -21,7 +21,7 @@ Resources:
       ImageId: !FindInMap [ Instances, Settings, ImageId ]
       InstanceType: !FindInMap [ Instances, Settings, InstanceType ]
       SecurityGroupIds: 
-        - !Ref HelloSg
+        - !Ref HelloSecurityGroup
       SubnetId: !Ref HelloSubnet 
       Tags: 
         - Key: 'Name' 
@@ -81,7 +81,7 @@ Resources:
               - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
         VpcId: !Ref HelloVpc 
   
-  HelloSg: 
+  HelloSecurityGroup: 
     Type: AWS::EC2::SecurityGroup
     Properties: 
       GroupDescription: 'Open to all traffic'

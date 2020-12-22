@@ -33,7 +33,7 @@ Resources:
       InstanceType: !FindInMap [ Instances, Settings, InstanceType ]
       KeyName: !Ref KeyPairName
       SecurityGroupIds:
-        - !Ref HelloSg
+        - !Ref HelloSecurityGroup
       SubnetId: !Ref HelloSubnetPublic
       Tags: 
         - Key: 'Name'
@@ -50,7 +50,7 @@ Resources:
       InstanceType: !FindInMap [ Instances, Settings, InstanceType ]
       KeyName: !Ref KeyPairName
       SecurityGroupIds:
-        - !Ref HelloSg
+        - !Ref HelloSecurityGroup
       SubnetId: !Ref HelloSubnetPrivate
       Tags: 
         - Key: 'Name'
@@ -103,7 +103,7 @@ Resources:
     Type: AWS::EC2::VPCEndpoint
     Properties: 
       SecurityGroupIds: 
-        - !Ref HelloSg
+        - !Ref HelloSecurityGroup
       ServiceName: !Sub 'com.amazonaws.${AWS::Region}.ec2'
       SubnetIds: 
         - !Ref HelloSubnetPrivate
@@ -119,7 +119,7 @@ Resources:
       VpcEndpointType: 'Gateway'
       VpcId: !Ref HelloVpc
 
-  HelloSg: 
+  HelloSecurityGroup: 
     Type: AWS::EC2::SecurityGroup
     Properties: 
       GroupDescription: 'Open to IPv4 traffic'

@@ -28,7 +28,7 @@ Resources:
       InstanceType: !FindInMap [ Instances, Settings, InstanceType ]
       KeyName: !Ref KeyPairName
       SecurityGroupIds: 
-        - !GetAtt HelloSgBastion.GroupId 
+        - !GetAtt HelloSecurityGroupBastion.GroupId 
       SubnetId: !Ref HelloSubnetPublic
       Tags: 
         - Key: 'Name'
@@ -44,7 +44,7 @@ Resources:
       InstanceType: !FindInMap [ Instances, Settings, InstanceType ]
       KeyName: !Ref KeyPairName
       SecurityGroupIds: 
-        - !GetAtt HelloSgPrivate.GroupId 
+        - !GetAtt HelloSecurityGroupPrivate.GroupId 
       SubnetId: !Ref HelloSubnetPrivate 
       Tags: 
         - Key: 'Name' 
@@ -53,7 +53,7 @@ Resources:
             - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
 
   #===== Security groups
-  HelloSgBastion: 
+  HelloSecurityGroupBastion: 
     Type: AWS::EC2::SecurityGroup
     Properties: 
       GroupDescription: 'Open to public SSH traffic'
@@ -67,7 +67,7 @@ Resources:
         ToPort: 22
       VpcId: !Ref HelloVpc 
         
-  HelloSgPrivate: 
+  HelloSecurityGroupPrivate: 
     Type: AWS::EC2::SecurityGroup
     Properties: 
       GroupDescription: 'Restricts ingress traffic to only SSH from Bastion'

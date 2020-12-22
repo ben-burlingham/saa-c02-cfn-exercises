@@ -98,7 +98,7 @@ Resources:
       Runtime: 'nodejs12.x'
 
   #===== IAM
-  HelloRole:
+  HelloRoleCodeBuild:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -113,7 +113,7 @@ Resources:
         - 'arn:aws:iam::aws:policy/AWSCodeBuildDeveloperAccess'
         - 'arn:aws:iam::aws:policy/AWSCodeCommitReadOnly'
       RoleName: !Sub
-        - 'hello-role-${UniqueSuffix}'
+        - 'hello-role-cb-${UniqueSuffix}'
         - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
 
   HelloRoleCodeDeploy:

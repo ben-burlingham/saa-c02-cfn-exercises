@@ -13,7 +13,7 @@ Mappings:
       UniqueSuffix: 'e08'
 
 Resources: 
-  #===== EC2 Instance
+  #===== EC2
   HelloInstance: 
     Type: AWS::EC2::Instance
     CreationPolicy:
@@ -129,18 +129,6 @@ Resources:
     Type: AWS::EC2::VPCGatewayAttachment
     Properties:
       InternetGatewayId: !Ref HelloIgw 
-      VpcId: !Ref HelloVpc
-
-  HelloSg: 
-    Type: AWS::EC2::SecurityGroup
-    Properties: 
-      GroupDescription: 'Open to IPv4 traffic'
-      GroupName: !Sub
-        - 'Hello SG ${UniqueSuffix}'
-        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
-      SecurityGroupIngress: 
-        CidrIp: '0.0.0.0/0'
-        IpProtocol: -1
       VpcId: !Ref HelloVpc
 
   #===== Subnet

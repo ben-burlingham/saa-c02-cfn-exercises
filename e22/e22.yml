@@ -73,7 +73,7 @@ Resources:
       NodeType: 'dax.t2.small'
       ReplicationFactor: 1
       SecurityGroupIds:
-        - !Ref HelloSg
+        - !Ref HelloSecurityGroup
       SubnetGroupName: !Ref HelloSubnetGroup
 
   #===== Lambda
@@ -182,7 +182,7 @@ Resources:
       InternetGatewayId: !Ref HelloIgw 
       VpcId: !Ref HelloVpc
 
-  HelloSg: 
+  HelloSecurityGroup: 
     Type: AWS::EC2::SecurityGroup
     Properties: 
       GroupDescription: 'Open to IPv4 traffic'
@@ -270,7 +270,7 @@ Resources:
       ImageId: !FindInMap [ Instances, Settings, ImageId ]
       InstanceType: !FindInMap [ Instances, Settings, InstanceType ]
       SecurityGroupIds:
-        - !Ref HelloSg
+        - !Ref HelloSecurityGroup
       SubnetId: !Ref HelloSubnetA
       Tags: 
         - Key: 'Name'

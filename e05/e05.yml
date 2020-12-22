@@ -1,45 +1,165 @@
 Parameters: 
-  KeyPairName:
+  BucketSuffix: 
+    AllowedPattern: ^[\d\w]{5,}$
     Type: String
-    Description: Name of key pair to use for instance SSH
+    Description: Identifier to provide uniqueness on S3 buckets
 
 Mappings:
-  Instances:
-    Settings:
-      ImageId: 'ami-04bf6dcdc9ab498ca'
-      InstanceType: 't2.micro'
-  Network:
-    Settings:
-      SubnetCidrBlock: '10.16.0.0/24'
-      VpcCidrBlock: '10.16.0.0/16'
   Application:
     Settings:
-      AvailabilityZone: 'us-east-1a'
       UniqueSuffix: 'e05'
 
-#===== Global Accelerator
-  HelloGlobalAccelerator:
-    Type: AWS::GlobalAccelerator::Accelerator
+Resources: 
+  #===== S3
+  HelloBucketEncrypted: 
+    Type: AWS::S3::Bucket
     Properties: 
-      Enabled: true
-      Name: !Sub
-        - 'hello-accelerator-${UniqueSuffix}'
+      BucketName: !Sub 
+        - 'hello-encrypted-${BucketSuffix}-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: 'aws:kms'
+              KMSMasterKeyID: !GetAtt HelloKmsKey.Arn
+  
+  HelloBucketUnencrypted: 
+    Type: AWS::S3::Bucket
+    Properties: 
+      BucketName: !Sub 
+        - 'hello-unencrypted-${BucketSuffix}-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+  
+  HelloBucketUnencryptedPolicy: 
+    Type: AWS::S3::BucketPolicy
+    Properties: 
+      Bucket: !Ref HelloBucketUnencrypted
+      PolicyDocument: 
+        Statement: 
+          - Principal: 
+              Service: cloudtrail.amazonaws.com
+            Action: 's3:GetBucketAcl'
+            Effect: 'Allow'
+            Resource: !GetAtt HelloBucketUnencrypted.Arn
+          - Principal: 
+              Service: cloudtrail.amazonaws.com
+            Action: 's3:PutObject'
+            Effect: 'Allow'
+            Resource: !Sub '${HelloBucketUnencrypted.Arn}/AWSLogs/${AWS::AccountId}/*'
+            Condition:
+              StringEquals: 
+                s3:x-amz-acl: 'bucket-owner-full-control'
+
+  HelloBucketEncryptedPolicy: 
+    Type: AWS::S3::BucketPolicy
+    Properties: 
+      Bucket: !Ref HelloBucketEncrypted
+      PolicyDocument: 
+        Statement: 
+          - Principal: 
+              Service: cloudtrail.amazonaws.com
+            Action: 's3:GetBucketAcl'
+            Effect: 'Allow'
+            Resource: !GetAtt HelloBucketEncrypted.Arn
+          - Principal: 
+              Service: cloudtrail.amazonaws.com
+            Action: 's3:PutObject'
+            Effect: 'Allow'
+            Resource: !Sub '${HelloBucketEncrypted.Arn}/AWSLogs/${AWS::AccountId}/*'
+            Condition:
+              StringEquals: 
+                s3:x-amz-acl: 'bucket-owner-full-control'
+
+  #===== CloudTrail
+  HelloCloudTrailUnencrypted:
+    DependsOn: HelloBucketUnencryptedPolicy
+    Type: AWS::CloudTrail::Trail
+    Properties: 
+      IncludeGlobalServiceEvents: true
+      IsLogging: true
+      S3BucketName: !Ref HelloBucketUnencrypted
+      TrailName: !Sub
+        - 'hello-ct-unencrypted-${UniqueSuffix}'
         - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
 
-  HelloListener:
-    Type: AWS::GlobalAccelerator::Listener
+  HelloCloudTrailEncrypted:
+    DependsOn: HelloBucketEncryptedPolicy
+    Type: AWS::CloudTrail::Trail
     Properties: 
-      AcceleratorArn: !Ref HelloGlobalAccelerator
-      PortRanges: 
-        - FromPort: 22
-          ToPort: 22
-      Protocol: 'TCP'
+      IncludeGlobalServiceEvents: false
+      IsLogging: true
+      KMSKeyId: !Ref HelloKmsKey 
+      S3BucketName: !Ref HelloBucketEncrypted
+      TrailName: !Sub
+        - 'hello-ct-encrypted-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
 
-  HelloEndpointGroup:
-    Type: AWS::GlobalAccelerator::EndpointGroup
+  #===== KMS
+  HelloKmsKey: 
+    Type: AWS::KMS::Key
     Properties: 
-      EndpointConfigurations: 
-        - EndpointId: !Ref HelloInstance
-      EndpointGroupRegion: !Ref AWS::Region
-      # HealthCheckPort: 22
-      ListenerArn: !Ref HelloListener
+      KeyPolicy: 
+        Statement:
+          - Sid: 'Allow access for Key Administrators'
+            Effect: 'Allow'
+            Principal: 
+              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
+            Action: 
+              - 'kms:Create*'
+              - 'kms:Describe*'
+              - 'kms:Enable*'
+              - 'kms:List*'
+              - 'kms:Put*'
+              - 'kms:Update*'
+              - 'kms:Revoke*'
+              - 'kms:Disable*'
+              - 'kms:Get*'
+              - 'kms:Delete*'
+              - 'kms:ScheduleKeyDeletion'
+              - 'kms:CancelKeyDeletion'
+            Resource: '*'
+          - Sid: 'Allow CloudTrail to encrypt logs'
+            Effect: 'Allow'
+            Principal: 
+              Service: 'cloudtrail.amazonaws.com'
+            Action: 
+                - 'kms:GenerateDataKey*'
+            Resource: '*'
+            Condition: 
+              StringLike: 
+                kms:EncryptionContext:aws:cloudtrail:arn: 
+                  !Sub 'arn:aws:cloudtrail:*:${AWS::AccountId}:trail/*'
+          # Comment out this block to observe that the Trail can't be decrypted in S3 ("denied").
+          - Sid: 'Enable CloudTrail log decrypt permissions'
+            Effect: 'Allow'
+            Principal: 
+              AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:user/iamadmin'
+            Action: 
+              - 'kms:Decrypt*'
+            Resource: '*'
+            Condition: 
+              'Null': 
+                kms:EncryptionContext:aws:cloudtrail:arn: false
+          - Sid: 'Allow CloudTrail access'
+            Effect: 'Allow'
+            Principal: 
+              Service: 'cloudtrail.amazonaws.com'
+            Action: 
+              - 'kms:DescribeKey'
+            Resource: '*'
+      Tags: 
+        - Key: 'Name'
+          Value: 'Hello Kms Key'
+
+  #===== Aliases
+  HelloAlias1:
+    Type: AWS::KMS::Alias
+    Properties: 
+      AliasName: 'alias/cmk-alias-1-of-2'
+      TargetKeyId: !Ref HelloKmsKey
+
+  HelloAlias2:
+    Type: AWS::KMS::Alias
+    Properties: 
+      AliasName: 'alias/cmk-alias-2-of-2'
+      TargetKeyId: !Ref HelloKmsKey

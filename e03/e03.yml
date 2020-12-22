@@ -68,10 +68,10 @@ Resources:
     Properties: 
       FileSystemId: !Ref HelloEfs
       SecurityGroups:
-        - !Ref HelloSgEfs
+        - !Ref HelloSecurityGroupEfs
       SubnetId: !Ref HelloSubnet
 
-  HelloSgEfs: 
+  HelloSecurityGroupEfs: 
     Type: AWS::EC2::SecurityGroup
     Properties: 
       GroupDescription: 'Open to IPv4 traffic'

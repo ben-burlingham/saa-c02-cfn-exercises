@@ -24,7 +24,7 @@ Resources:
       MultiAZ: true
       PubliclyAccessible: true
       VPCSecurityGroups:
-        - !Ref HelloSgVpc
+        - !Ref HelloSecurityGroupVpc
 
   HelloDbReadReplica:
     Type: AWS::RDS::DBInstance
@@ -35,7 +35,7 @@ Resources:
       PubliclyAccessible: true
       SourceDBInstanceIdentifier: !Ref HelloDbSource
       VPCSecurityGroups:
-        - !Ref HelloSgVpc
+        - !Ref HelloSecurityGroupVpc
 
   HelloDbSubnetGroup:
     Type: AWS::RDS::DBSubnetGroup
@@ -67,7 +67,7 @@ Resources:
       InternetGatewayId: !Ref HelloIgw 
       VpcId: !Ref HelloVpc
 
-  HelloSgVpc: 
+  HelloSecurityGroupVpc: 
     Type: AWS::EC2::SecurityGroup
     Properties: 
       GroupDescription: 'Open to all IPv4 traffic'

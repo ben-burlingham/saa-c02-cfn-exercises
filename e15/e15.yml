@@ -23,7 +23,7 @@ Resources:
       ImageId: !FindInMap [ Instances, Settings, ImageId ]
       InstanceType: !FindInMap [ Instances, Settings, InstanceType ]
       SecurityGroupIds:
-        - !Ref HelloSg
+        - !Ref HelloSecurityGroup
       SubnetId: !Ref HelloSubnetEast1a 
       Tags: 
         - Key: 'Name'
@@ -39,7 +39,7 @@ Resources:
       ImageId: !FindInMap [ Instances, Settings, ImageId ]
       InstanceType: !FindInMap [ Instances, Settings, InstanceType ]
       SecurityGroupIds:
-        - !Ref HelloSg
+        - !Ref HelloSecurityGroup
       SubnetId: !Ref HelloSubnetEast1a 
       Tags: 
         - Key: 'Name'
@@ -82,7 +82,7 @@ Resources:
         - 'hello-alb-${UniqueSuffix}'
         - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
       SecurityGroups: 
-        - !Ref HelloSg
+        - !Ref HelloSecurityGroup
       Subnets:
         - !Ref HelloSubnetEast1a
         - !Ref HelloSubnetEast1b
@@ -149,7 +149,7 @@ Resources:
       InternetGatewayId: !Ref HelloIgw 
       VpcId: !Ref HelloVpc
 
-  HelloSg: 
+  HelloSecurityGroup: 
     Type: AWS::EC2::SecurityGroup
     Properties: 
       GroupDescription: 'Open to IPv4 traffic'

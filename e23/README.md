@@ -35,8 +35,20 @@ SES LAMBDA ON DEPLOY?
 
 ## Exercise 4
 
-add secondarysource codepipeline
+version: 0.0
+
+Resources:
+  - HelloLambda: 
+      Type: AWS::Lambda::Function
+      Properties:
+        Name: 'hello-codedeploy-lambda'
+        Alias: "DELETEME-V2" 
+        CurrentVersion: "2" 
+        TargetVersion: "1"
+
+
+# Hooks:
+#   - AfterAllowTraffic: ""
+#   - BeforeAllowTraffic: ""
 
 commit repo trigger?
-
-UPDATE HELLOROLE to HELLOROLEcb

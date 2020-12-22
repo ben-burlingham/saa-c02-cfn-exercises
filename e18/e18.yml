@@ -38,18 +38,6 @@ Resources:
       InternetGatewayId: !Ref HelloIgw 
       VpcId: !Ref HelloVpc
 
-  HelloSg: 
-    Type: AWS::EC2::SecurityGroup
-    Properties: 
-      GroupDescription: 'Open to IPv4 traffic'
-      GroupName: !Sub
-        - 'Hello SG ${UniqueSuffix}'
-        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
-      SecurityGroupIngress: 
-        CidrIp: '0.0.0.0/0'
-        IpProtocol: -1
-      VpcId: !Ref HelloVpc 
-
   #===== Subnet + route table
   HelloSubnet:
     Type: AWS::EC2::Subnet
@@ -193,7 +181,7 @@ Resources:
       TTL: '60'
       Type: 'A'
 
-  # ===== Health checks
+  #===== Health checks
   HelloHealthCheckPrimary:
     Type: AWS::Route53::HealthCheck
     Properties: 
