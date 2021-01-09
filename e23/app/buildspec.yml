@@ -7,7 +7,7 @@ phases:
       - pwd
       - ls
       - whoami
-      - chmod 777 build.sh
+      - chmod 777 app.sh
     finally:
       - echo "Hello install phase cleanup."
   pre_build:
@@ -15,7 +15,11 @@ phases:
       - echo "Hello pre-build phase."
   build:
     commands:
-      - ./build.sh
+      - ./app.sh
   post_build:
     finally:
       - echo "Hello post-build phase cleanup."
+      - cat ./AppSpec-L1.yml
+      
+artifacts:
+  files: ./AppSpec-L1.yml

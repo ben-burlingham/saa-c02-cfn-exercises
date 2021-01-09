@@ -3,7 +3,7 @@
 - NAT gateway pattern
 
 ### Additional command line parameter: 
-```--parameters ParameterKey=BucketSuffix,ParameterValue=foo ParameterKey=KeyPairName,ParameterValue=bar```
+```--parameters ParameterKey=KeyPairName,ParameterValue=bar```
 
 ---
 

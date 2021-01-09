@@ -1,0 +1,10 @@
+version: 0.0
+
+Resources:
+  - HelloLambda: 
+      Type: AWS::Lambda::Function
+      Properties:
+        Name: 'hello-lambda-2'
+        Alias: "PROD" 
+        CurrentVersion: "1" 
+        TargetVersion: "2"

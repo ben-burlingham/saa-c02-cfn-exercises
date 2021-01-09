@@ -23,7 +23,9 @@ Resources:
     Type: AWS::CodeBuild::Project
     Properties: 
       Artifacts: 
-        Type: 'NO_ARTIFACTS'
+        Location: !Ref HelloBucket
+        Name: '/'
+        Type: 'S3'
       Environment: 
         ComputeType: 'BUILD_GENERAL1_SMALL'
         Image: 'aws/codebuild/amazonlinux2-x86_64-standard:2.0'
@@ -33,66 +35,133 @@ Resources:
         - 'hello-build-${UniqueSuffix}'
         - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
       QueuedTimeoutInMinutes: 5
-      ServiceRole: !GetAtt HelloRole.Arn
+      ServiceRole: !GetAtt HelloRoleCodeBuild.Arn
       Source: 
         GitCloneDepth: 1
         Location: !GetAtt HelloCommitRepo.CloneUrlHttp
         Type: 'CODECOMMIT'
       TimeoutInMinutes: 5
 
-  # #===== CodeDeploy
-  # HelloApplication:
-  #   Type: AWS::CodeDeploy::Application
-  #   Properties: 
-  #     ApplicationName: !Sub
-  #       - 'hello-deploy-${UniqueSuffix}'
-  #       - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
-  #     ComputePlatform: 'Lambda'
+  #===== CodeDeploy
+  HelloApplication:
+    Type: AWS::CodeDeploy::Application
+    Properties: 
+      ApplicationName: !Sub
+        - 'hello-deploy-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+      ComputePlatform: 'Lambda'
 
-  # HelloDeploymentGroup:
-  #   Type: AWS::CodeDeploy::DeploymentGroup
-  #   Properties: 
-  #     ApplicationName: !Ref HelloApplication
-  #     #===== Not working at this time? 12/21/20
-  #     # Deployment:
-  #     #   Revision: 
-  #     #     RevisionType: |
-  #     #       version: 0.0
+  HelloDeploymentGroupLambda1:
+    Type: AWS::CodeDeploy::DeploymentGroup
+    Properties: 
+      ApplicationName: !Ref HelloApplication
+      DeploymentConfigName: 'CodeDeployDefault.LambdaAllAtOnce'
+      DeploymentGroupName: !Sub
+        - 'hello-deployment-group-lambda-1-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+      DeploymentStyle:
+        DeploymentOption: WITH_TRAFFIC_CONTROL 
+        DeploymentType: BLUE_GREEN
+      ServiceRoleArn: !GetAtt HelloRoleCodeDeploy.Arn
+  
+  HelloDeploymentGroupLambda2:
+    Type: AWS::CodeDeploy::DeploymentGroup
+    Properties: 
+      ApplicationName: !Ref HelloApplication
+      DeploymentConfigName: 'CodeDeployDefault.LambdaAllAtOnce'
+      DeploymentGroupName: !Sub
+        - 'hello-deployment-group-lambda-2-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+      DeploymentStyle:
+        DeploymentOption: WITH_TRAFFIC_CONTROL 
+        DeploymentType: BLUE_GREEN
+      ServiceRoleArn: !GetAtt HelloRoleCodeDeploy.Arn
 
-  #     #       Resources:
-  #     #         - HelloLambda: 
-  #     #             Type: AWS::Lambda::Function
-  #     #             Properties:
-  #     #               Name: 'hello-codedeploy-lambda'
-  #     #               Alias: "TEST-V2" 
-  #     #               CurrentVersion: "2" 
-  #     #               TargetVersion: "1"
-  #     #===== (also not working)
-  #     Deployment:
-  #       Revision: 
-  #         RevisionType: 'S3'
-  #         S3Location: 
-  #           Bucket: 'hello-bucket-burlingham-e23'
-  #           BundleType: 'YAML'
-  #           Key: 'AppSpec.yml'
-  #     #=====
-  #     DeploymentConfigName: 'CodeDeployDefault.LambdaAllAtOnce'
-  #     DeploymentStyle:
-  #       DeploymentOption: WITH_TRAFFIC_CONTROL
-  #       DeploymentType: BLUE_GREEN
-  #     ServiceRoleArn: !GetAtt HelloRoleCodeDeploy.Arn
+  #===== CodePipeline
+  HelloPipeline:
+    Type: AWS::CodePipeline::Pipeline
+    Properties: 
+      ArtifactStore: 
+        Location: !Ref HelloBucket
+        Type: 'S3'
+      Name: !Sub
+        - 'hello-pipeline-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+      RestartExecutionOnUpdate: true
+      RoleArn: !GetAtt HelloRoleCodePipeline.Arn
+      Stages: 
+        - Actions: 
+            - ActionTypeId: 
+                Category: 'Source'
+                Owner: 'AWS'
+                Provider: 'CodeCommit'
+                Version: '1'
+              Configuration:
+                RepositoryName: !GetAtt HelloCommitRepo.Name
+                BranchName: master
+                OutputArtifactFormat: CODEBUILD_CLONE_REF
+                PollForSourceChanges: 'false'
+              Name: !Sub
+                - 'hello-source-action-${UniqueSuffix}'
+                - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+              OutputArtifacts:
+                - Name: !Sub
+                  - 'hello-source-output-artifact-${UniqueSuffix}'
+                  - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+              RunOrder: 1
+          Name: !Sub
+            - 'hello-source-stage-${UniqueSuffix}'
+            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+        - Actions: 
+            - ActionTypeId: 
+                Category: 'Build'
+                Owner: 'AWS'
+                Provider: 'CodeBuild'
+                Version: '1'
+              Configuration:
+                PrimarySource: !Sub
+                  - 'hello-source-output-artifact-${UniqueSuffix}'
+                  - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+                ProjectName: !Ref HelloBuildProject
+              InputArtifacts: 
+                - Name: !Sub
+                  - 'hello-source-output-artifact-${UniqueSuffix}'
+                  - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+              Name: !Sub
+                - 'hello-build-action-${UniqueSuffix}'
+                - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+              OutputArtifacts:
+                - Name: !Sub
+                  - 'hello-build-output-artifact-${UniqueSuffix}'
+                  - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+              RunOrder: 2
+          Name: !Sub
+            - 'hello-build-stage-${UniqueSuffix}'
+            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
 
   #===== Lambdas
-  HelloLambda:
+  HelloLambda1: 
     Type: AWS::Lambda::Function
     Properties: 
       Code: 
         ZipFile: |
           exports.handler = async (event, _) => { 
-            console.log("EVENT", event);
-            return "Hello from CodeDeploy lambda";
+            return "Hello from Lambda 1 v1";
           }
-      FunctionName: 'hello-codedeploy-lambda'
+      FunctionName: 'hello-lambda-1' 
+      Handler: 'index.handler'
+      Role: !GetAtt HelloRoleLambdaExecution.Arn
+      Runtime: 'nodejs12.x'
+
+  HelloLambda2: 
+    Type: AWS::Lambda::Function
+    Properties: 
+      Code: 
+        ZipFile: |
+          exports.handler = async (event, _) => { 
+            return "Hello from Lambda 2 v1"; 
+          }
+      FunctionName: 'hello-lambda-2'
       Handler: 'index.handler'
       Role: !GetAtt HelloRoleLambdaExecution.Arn
       Runtime: 'nodejs12.x'
@@ -112,6 +181,7 @@ Resources:
       ManagedPolicyArns: 
         - 'arn:aws:iam::aws:policy/AWSCodeBuildDeveloperAccess'
         - 'arn:aws:iam::aws:policy/AWSCodeCommitReadOnly'
+        - 'arn:aws:iam::aws:policy/CloudWatchLogsFullAccess'
       RoleName: !Sub
         - 'hello-role-cb-${UniqueSuffix}'
         - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
@@ -132,6 +202,33 @@ Resources:
         - 'arn:aws:iam::aws:policy/AmazonS3FullAccess'
       RoleName: !Sub
         - 'hello-role-cd-${UniqueSuffix}'
+        - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
+
+  HelloRoleCodePipeline:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          Effect: 'Allow'
+          Principal: 
+            Service: 
+              - 'codepipeline.amazonaws.com'
+          Action: 
+            - 'sts:AssumeRole'
+      ManagedPolicyArns: 
+        - 'arn:aws:iam::aws:policy/AWSCodeCommitFullAccess'
+        - 'arn:aws:iam::aws:policy/AmazonS3FullAccess'
+      Policies:
+        - PolicyName: "hello-flow-log-policy"
+          PolicyDocument: 
+            Statement:
+              - Action:
+                  - codebuild:BatchGetBuilds
+                  - codebuild:StartBuild
+                Effect: 'Allow'
+                Resource: "*"
+      RoleName: !Sub
+        - 'hello-role-cp-${UniqueSuffix}'
         - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
 
   HelloRoleLambdaExecution:

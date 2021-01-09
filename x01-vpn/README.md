@@ -1,10 +1,6 @@
 # Topics
 - VPC peering
 
-
-
-
-
 customer gateway + vpcA + ec2, us-west-1
 transit gateway + vpcB + ec2, us-east-1
 vpn endpoint + private ec2

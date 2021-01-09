@@ -18,6 +18,7 @@ To start, create an IAM administrative user named `iamadmin-general`.
 
 ## Disclaimers
 - Most of these can be done on free tier. They are very lightweight and should incur very little billing, but please keep an eye on it.
+- Most exercises do not use the principle of least privilege.
 - These are not production ready.
 - These are not production ready.
 
@@ -39,5 +40,9 @@ An example of a common CLI call:
   ```
 
 ==================== BACKLOG
-E18 TEST HTTPD WITHOUT SG
-E23 CodeCommit + CodeBuild + CodeDeploy (study page?) CODEPIPELINE? + SES
+E26 XRay DMS SES? 
+E27 CFN: APIGATEWAY TO DDB
+AWS::CloudFormation::Stack / TemplateURL: .  Return outputs to parent stack.  
+Export/import value (cross-stack reference)
+E10? CW alarm to lambda w/o sns
+ADD TAGS
