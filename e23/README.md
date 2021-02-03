@@ -6,7 +6,6 @@
 
 ## Exercise 1
 Create a CodeCommit repository. Use the IAM console to generate credentials for it. Create a simple `app.sh` file which displays output when run.
-
 - [AWS::CodeCommit::Repository](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-codecommit-repository.html)
 - [Generating CodeCommit credentials](https://docs.aws.amazon.com/codecommit/latest/userguide/setting-up-gc.html)
 
@@ -18,7 +17,6 @@ Create a CodeCommit repository. Use the IAM console to generate credentials for 
 
 ## Exercise 2
 Create a CodeBuild Build Project which sources the CodeCommit repository. Add a `buildspec.yml` file to the repository.
-
 - [AWS::CodeBuild::Project Source](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-codebuild-project-source.html)
 - [buildspec.yml examples](https://docs.aws.amazon.com/codebuild/latest/userguide/build-spec-ref.html#build-spec-ref-example)
 
