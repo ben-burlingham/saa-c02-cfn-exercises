@@ -38,11 +38,3 @@ An example of a common CLI call:
     --template-body file://eX/eX.yml 
     --stack-name helloY
   ```
-
-==================== BACKLOG
-E26 XRay DMS SES? 
-E27 CFN: APIGATEWAY TO DDB
-AWS::CloudFormation::Stack / TemplateURL: .  Return outputs to parent stack.  
-Export/import value (cross-stack reference)
-E10? CW alarm to lambda w/o sns
-ADD TAGS

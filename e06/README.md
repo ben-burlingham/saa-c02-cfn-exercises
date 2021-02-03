@@ -10,7 +10,7 @@ You can't SSH directly to IPv6 without this.
 ---
 
 ## Exercise 1
-Create a VPC with an IPv6 VPCCidrBlock, IGW, a route table, and IPv6 subnet.
+Create a VPC, an IGW, a route table, and a subnet with both IPv4 and IPv6 CIDR blocks.
 - [AWS::EC2::VPCCidrBlock](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-vpccidrblock.html)
 - [!Cidr](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference-cidr.html)
 - [Subnet DependsOn CIDR block](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-dependson.html)

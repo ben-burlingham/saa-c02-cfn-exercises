@@ -18,7 +18,7 @@ Create a CMK key with only administrative permissions. Create two buckets, encry
 ---
 
 ## Exercise 2
-Create a Cloudtrail Trail that delivers data to unencrypted bucket.
+Create a Cloudtrail Trail that delivers data to an unencrypted bucket.
 - [Trail](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-cloudtrail-trail.html)
 
 **Verify:** 
@@ -27,11 +27,13 @@ Create a Cloudtrail Trail that delivers data to unencrypted bucket.
 ---
 
 ## Exercise 3 
-Extend the CMK with Cloudtrail policies. Create a Cloudtrail Trail that delivers data to encrypted bucket.
+Extend the CMK with Cloudtrail policies. Create a Cloudtrail Trail that delivers data to an encrypted bucket.
 - [KMS policy for Cloudtrail](https://docs.aws.amazon.com/awscloudtrail/latest/userguide/create-kms-key-policy-for-cloudtrail.html)
 
 **Verify:** 
 - Observe Cloudtrail logs in encrypted bucket.
+
+---
 
 ## Exercise 4
 Create two aliases for the CMK.
