@@ -149,6 +149,7 @@ Resources:
             - 'sts:AssumeRole'
       ManagedPolicyArns: 
         - 'arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore'
+        - 'arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess'
       RoleName: !Sub
         - 'hello-role-ec2-${UniqueSuffix}'
         - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
@@ -195,7 +196,7 @@ Resources:
       VpcId: !Ref HelloVpc
 
   #===== Subnet
-  HelloSubnetA:
+  HelloSubnet:
     Type: AWS::EC2::Subnet
     Properties:
       AvailabilityZone: !FindInMap [ Application, Settings, AvailabilityZoneA ]
@@ -204,20 +205,7 @@ Resources:
       Tags:
         - Key: 'Name'
           Value: !Sub
-            - 'Hello subnet A ${UniqueSuffix}'
-            - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
-      VpcId: !Ref HelloVpc
-
-  HelloSubnetB:
-    Type: AWS::EC2::Subnet
-    Properties:
-      AvailabilityZone: !FindInMap [ Application, Settings, AvailabilityZoneB ]
-      CidrBlock: !FindInMap [ Network, Settings, SubnetCidrBlockB ]
-      MapPublicIpOnLaunch: true
-      Tags:
-        - Key: 'Name'
-          Value: !Sub
-            - 'Hello subnet B ${UniqueSuffix}'
+            - 'Hello subnet ${UniqueSuffix}'
             - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
       VpcId: !Ref HelloVpc
 
@@ -229,8 +217,7 @@ Resources:
         - 'hello-sg-${UniqueSuffix}'
         - UniqueSuffix: !FindInMap [ Application, Settings, UniqueSuffix ]
       SubnetIds: 
-        - !Ref HelloSubnetA
-        - !Ref HelloSubnetB
+        - !Ref HelloSubnet
 
   #==== RT
   HelloRt:
@@ -250,17 +237,11 @@ Resources:
       GatewayId: !Ref HelloIgw 
       RouteTableId: !Ref HelloRt 
 
-  HelloRtAssociateA:
+  HelloRtAssociate:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
       RouteTableId: !Ref HelloRt
-      SubnetId: !Ref HelloSubnetA
-
-  HelloRtAssociateB:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      RouteTableId: !Ref HelloRt
-      SubnetId: !Ref HelloSubnetB
+      SubnetId: !Ref HelloSubnet
 
   #===== EC2
   HelloInstance: 
@@ -271,7 +252,7 @@ Resources:
       InstanceType: !FindInMap [ Instances, Settings, InstanceType ]
       SecurityGroupIds:
         - !Ref HelloSecurityGroup
-      SubnetId: !Ref HelloSubnetA
+      SubnetId: !Ref HelloSubnet
       Tags: 
         - Key: 'Name'
           Value: !Sub

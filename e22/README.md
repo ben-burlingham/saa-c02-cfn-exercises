@@ -30,7 +30,7 @@ Create a DAX cluster, a subnet, and an EC2 instance with Session Connect enabled
 - [Role](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DAX.create-cluster.cli.create-service-role.html)
 
 **Verify:**
-- From the EC2 isntance, execute `nc -z DAX_ENDPOINT_URL`.
+- From the EC2 instance, execute `nc -z DAX_ENDPOINT_URL` without an error response.
 
 ## Exercise 3
 Add a `StreamSpecification` to the table. Map this event source to a lambda.
