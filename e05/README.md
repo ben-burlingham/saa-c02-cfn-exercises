@@ -5,6 +5,10 @@
 ### Additional command line parameter: 
 ```--parameters ParameterKey=BucketSuffix,ParameterValue=foo```
 
+### Diagram
+
+![Diagram](e05.png)
+
 ---
 
 ## Exercise 1 

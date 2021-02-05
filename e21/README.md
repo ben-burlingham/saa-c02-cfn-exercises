@@ -4,6 +4,10 @@
 - Event bridge
 - Step functions
 
+### Diagram
+
+![Diagram](e21.png)
+
 ---
 
 ## Exercise 1

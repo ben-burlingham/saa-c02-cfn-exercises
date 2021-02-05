@@ -7,6 +7,10 @@
 - Route tables
 - NACLs
 
+### Diagram
+
+![Diagram](e02.png)
+
 ---
 
 ## Exercise 1

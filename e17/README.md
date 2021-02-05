@@ -3,6 +3,12 @@
 - SQS EventSourceMapping (lambda trigger)
 - SNS
 
+### Diagram
+
+![Diagram](e17.png)
+
+---
+
 ## Exercise 1
 Create an SQS queue.
 

@@ -7,6 +7,12 @@ Note: Creating RDS instances is time consuming; it can take about 15-30 minutes 
 
 Note: These exercises can create incidental RDS snapshots. *Be sure to destroy the snapshots* to avoid unexpected fees.
 
+### Diagram
+
+![Diagram](e13.png)
+
+---
+
 ## Exercise 1
 Create a VPC, a security group, and a route table. Add two subnets, each in a different AZ.
 - Refer to previous exercise(s) if necessary. 

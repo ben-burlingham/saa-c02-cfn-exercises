@@ -7,6 +7,10 @@
 Connectivity to the IPv6 internet requires router and/or ISP support. See https://ipv6-test.com/ or http://test-ipv6.com/.
 You can't SSH directly to IPv6 without this.
 
+### Diagram
+
+![Diagram](e06.png)
+
 ---
 
 ## Exercise 1

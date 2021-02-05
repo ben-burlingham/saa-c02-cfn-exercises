@@ -4,6 +4,10 @@
 - `cfn-init`
 - `cfn-signal`
 
+### Diagram
+
+![Diagram](e08.png)
+
 ---
 
 ## Exercise 1 

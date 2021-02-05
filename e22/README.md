@@ -5,6 +5,12 @@
 - DynamoDB GSI
 - DynamoDB LSI
 
+### Diagram
+
+![Diagram](e22.png)
+
+---
+
 ## Exercise 1
 Create a DynamoDB table.
 - [AWS::DynamoDB::Table](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-dynamodb-table.html)

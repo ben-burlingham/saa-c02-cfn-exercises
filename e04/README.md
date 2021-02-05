@@ -5,6 +5,10 @@
 ### Additional command line parameter: 
 ```--parameters ParameterKey=KeyPairName,ParameterValue=bar```
 
+### Diagram
+
+![Diagram](e04.png)
+
 ---
 
 ## Exercise 1

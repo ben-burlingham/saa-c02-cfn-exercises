@@ -11,6 +11,12 @@ Transferring a domain from another registrar takes 7-10 days and incurs a simila
 ### Additional command line parameter: 
 ```--parameters ParameterKey=DomainName,ParameterValue=foo```
 
+### Diagram
+
+![Diagram](e18.png)
+
+---
+
 ## Exercise 1
 Create two public EC2 instances. Install the `httpd` server on them with a unique index document per server.
 - Refer to previous exercise(s) if necessary. 

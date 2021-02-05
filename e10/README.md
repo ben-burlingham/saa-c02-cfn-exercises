@@ -3,6 +3,10 @@
 - Launch Templates
 - Cloudwatch Alarms
 
+### Diagram
+
+![Diagram](e10.png)
+
 ---
 
 ## Exercise 1 

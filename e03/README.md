@@ -3,6 +3,10 @@
 - EBS (Elastic Block Store)
 - EFS (Elastic File System)
 
+### Diagram
+
+![Diagram](e03.png)
+
 ---
 
 ## Exercise 1

@@ -4,6 +4,10 @@
 - Cognito identity pool
 - Cognito LambdaConfig
 
+### Diagram
+
+![Diagram](e24.png)
+
 ---
 
 ## Exercise 1 

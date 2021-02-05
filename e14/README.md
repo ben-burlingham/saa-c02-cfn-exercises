@@ -4,6 +4,11 @@
 - 'Forward' load balancing action
 - Multiple load balancer listeners
 
+### Diagram
+
+![Diagram](e14.png)
+---
+
 ## Exercise 1
 Create two EC2 instances, A and B, on a subnet.
 - Refer to previous exercise(s) if necessary. 

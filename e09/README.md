@@ -4,6 +4,10 @@
 - Global Accelerator listener
 - Global Accelerator endpoint group
 
+### Diagram
+
+![Diagram](e09.png)
+
 ---
 
 ## Exercise 1

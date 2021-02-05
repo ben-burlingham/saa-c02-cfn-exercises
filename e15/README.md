@@ -5,6 +5,12 @@
 - 'FixedResponse' load balancing action
 - Session stickiness
 
+### Diagram
+
+![Diagram](e15.png)
+
+---
+
 ## Exercise 1
 Create two subnets and two EC2 instances, A and B, serving simple and unique `index.html`.
 - Refer to previous exercise(s) if necessary. 

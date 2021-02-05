@@ -3,6 +3,10 @@
 - ECR 
 - LaunchTemplate
 
+### Diagram
+
+![Diagram](e11.png)
+
 ---
 
 ## Exercise 1

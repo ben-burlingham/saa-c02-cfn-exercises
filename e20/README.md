@@ -6,6 +6,10 @@ Topics:
 ### Additional command line parameter: 
 ```--parameters ParameterKey=BucketSuffix,ParameterValue=foo ParameterKey=KeyPairName,ParameterValue=bar```
 
+### Diagram
+
+![Diagram](e20.png)
+
 ---
 
 ## Exercise 1

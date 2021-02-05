@@ -5,6 +5,10 @@
 - Elastic Beanstalk extensions
 - Elastic Beanstalk configurations
 
+### Diagram
+
+![Diagram](e25.png)
+
 ---
 
 ## Exercise 1 

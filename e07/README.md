@@ -2,6 +2,10 @@
 - Network Interface
 - Flow Logs
 
+### Diagram
+
+![Diagram](e07.png)
+
 ---
 
 ## Exercise 1

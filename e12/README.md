@@ -4,6 +4,12 @@
 - Autoscaling groups
 - LaunchConfiguration
 
+### Diagram
+
+![Diagram](e12.png)
+
+---
+
 ## Exercise 1
 Create a VPN, subnet, route table, and a role. Create an ECR with the Docker Official `hello-world` image.
 - Refer to previous exercise(s) if necessary. 

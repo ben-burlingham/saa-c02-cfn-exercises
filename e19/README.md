@@ -5,6 +5,12 @@
 - Lambda@Edge
 - Lambda Versions
 
+### Diagram
+
+![Diagram](e19.png)
+
+---
+
 ## Exercise 1
 Create two S3 buckets to statically host two separate HTML pages. 
 - HTML A: `<html><h1>Hello A</h1></html>`

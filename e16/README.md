@@ -2,6 +2,12 @@
 - Lambda (NodeJS)
 - API Gateway (v1)
 
+### Diagram
+
+![Diagram](e16.png)
+
+---
+
 ## Exercise 1
 Construct a `Lambda` whose outputs are captured in Cloudwatch.
 - [Lambda](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-function.html)

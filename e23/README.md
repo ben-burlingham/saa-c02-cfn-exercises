@@ -4,6 +4,12 @@
 - CodeDeploy
 - CodePipeline
 
+### Diagram
+
+![Diagram](e23.png)
+
+---
+
 ## Exercise 1
 Create a CodeCommit repository. Use the IAM console to generate credentials for it. Create a simple `app.sh` file which displays output when run.
 - [AWS::CodeCommit::Repository](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-codecommit-repository.html)
