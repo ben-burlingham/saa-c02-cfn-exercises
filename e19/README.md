@@ -1,6 +1,6 @@
 # Topics
 - S3 static hosting
-- Cloudformation origin groups
+- Cloudfront origin groups
 - WAF / Web ACL
 - Lambda@Edge
 - Lambda Versions

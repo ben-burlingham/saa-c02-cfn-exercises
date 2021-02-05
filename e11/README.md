@@ -1,5 +1,4 @@
 # Topics
-- EC2 
 - ECS (Fargate mode)
 - ECR 
 - LaunchTemplate
